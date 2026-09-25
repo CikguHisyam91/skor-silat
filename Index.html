@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistem Skor Silat Tanding</title>
+<style>
+  :root{--bg:#0a0e15;--bg2:#0e1420;--panel:#121a28;--line:#1f2c40;--ink:#eaf0f8;--muted:#8595ad;--gold:#f1c232;--gold-dim:#5d4a14;--merah:#e2333f;--biru:#2f6bff;--ok:#21c779}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(900px 500px at 20% -10%,#14203a 0%,transparent 60%),radial-gradient(900px 500px at 80% -10%,#261018 0%,transparent 60%),var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 16px 40px}
+  h1{margin:0;font-size:30px;letter-spacing:.14em;font-weight:900}
+  h1 span{color:var(--gold)}
+  .sub{color:var(--muted);letter-spacing:.2em;text-transform:uppercase;font-size:11px;margin-top:4px;font-weight:800}
+  .roles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:24px}
+  .role{display:block;text-decoration:none;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+  .role:hover{border-color:var(--gold-dim)}
+  .role b{display:block;font-size:20px;margin-bottom:6px}
+  .role small{color:var(--muted);font-size:13px;line-height:1.5}
+  h2{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:34px 0 6px}
+  .note{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 14px}
+  .qrs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .qr{background:#fff;color:#111;border-radius:16px;padding:16px;text-align:center}
+  .qr .j{font-size:26px;font-weight:900;letter-spacing:.1em}
+  .qr img{width:100%;max-width:220px;aspect-ratio:1;display:block;margin:10px auto}
+  .qr a{font-size:11px;color:#333;word-break:break-all}
+  .btn{border:none;background:var(--gold);color:#0a0e15;border-radius:12px;padding:12px 18px;font-weight:900;cursor:pointer;font-size:14px}
+  @media (max-width:700px){ .roles,.qrs{grid-template-columns:1fr} }
+  @media print{
+    body{background:#fff}
+    .wrap>*:not(.qrs){display:none}
+    .qrs{grid-template-columns:1fr 1fr 1fr}
+    .qr{border:2px solid #000;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SILAT <span>TANDING</span></h1>
+  <div class="sub">Sri Gayong Panglima Ulung • Sistem Skor Digital</div>
+
+  <div class="roles">
+    <a class="role" href="ketua.html"><b>🎛️ Ketua Pertandingan</b><small>Laptop meja Ketua. Kawal masa, babak, jatuhan, hukuman, bantahan dan pemenang.</small></a>
+    <a class="role" href="tv.html"><b>📺 Papan Skor TV</b><small>Skrin besar untuk penonton. Klik sekali untuk skrin penuh.</small></a>
+    <a class="role" href="juri.html?j=1"><b>📱 Juri 1</b><small>Fon juri kerusi 1.</small></a>
+    <a class="role" href="juri.html?j=2"><b>📱 Juri 2</b><small>Fon juri kerusi 2.</small></a>
+    <a class="role" href="juri.html?j=3"><b>📱 Juri 3</b><small>Fon juri kerusi 3.</small></a>
+  </div>
+
+  <h2>Kad QR Kerusi Juri</h2>
+  <p class="note">Cetak dan letak di meja setiap kerusi. Juri baru imbas QR kerusinya, fon terus jadi alat undi kerusi tersebut. Fon juri lama akan terputus secara automatik.</p>
+  <button class="btn" id="btnCetak">🖨️ Cetak Kad QR</button>
+  <div class="qrs" id="qrs" style="margin-top:14px"></div>
+</div>
+<script>
+"use strict";
+var asas = location.href.replace(/[^\/]*(\?.*)?(#.*)?$/, "");
+var h = "";
+[1, 2, 3].forEach(function(n){
+  var url = asas + "juri.html?j=" + n;
+  var img = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data=" + encodeURIComponent(url);
+  h += "<div class=\"qr\"><div class=\"j\">JURI " + n + "</div><img src=\"" + img + "\" alt=\"QR Juri " + n + "\"><a href=\"" + url + "\">" + url + "</a></div>";
+});
+document.getElementById("qrs").innerHTML = h;
+document.getElementById("btnCetak").addEventListener("click", function(){ window.print(); });
+</script>
+</body>
+</html>

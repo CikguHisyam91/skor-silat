@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ketua Pertandingan — Silat Tanding</title>
+<style>
+  :root{
+    --bg:#0a0e15;--bg2:#0e1420;--panel:#121a28;--line:#1f2c40;
+    --ink:#eaf0f8;--muted:#8595ad;--gold:#f1c232;--gold-dim:#5d4a14;
+    --merah:#e2333f;--merah-glow:#ff5662;--biru:#2f6bff;--biru-glow:#5d93ff;
+    --ok:#21c779;--shadow:0 10px 40px rgba(0,0,0,.5);--r:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{background:radial-gradient(900px 500px at 20% -10%,#14203a 0%,transparent 60%),radial-gradient(900px 500px at 80% -10%,#261018 0%,transparent 60%),var(--bg);
+    color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .num{font-variant-numeric:tabular-nums}
+  .topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0d1422,#0a0e15)}
+  .brand{display:flex;flex-direction:column;line-height:1.05}
+  .brand b{font-size:15px;letter-spacing:.14em;font-weight:800}.brand b span{color:var(--gold)}
+  .brand small{font-size:10px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase}
+  .role{font-size:10px;font-weight:800;letter-spacing:.16em;color:#0a0e15;background:var(--gold);padding:3px 9px;border-radius:999px}
+  .top-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .conn{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:700}
+  .conn i{width:10px;height:10px;border-radius:50%;background:#5a343a;display:block}
+  .conn.on i{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+  .kerusi{display:flex;gap:5px}
+  .kerusi span{font-size:11px;font-weight:800;padding:5px 9px;border-radius:8px;border:1px solid var(--line);background:var(--bg2);color:var(--muted)}
+  .kerusi span.on{background:#13251a;border-color:#2f6b45;color:#8fe6a8}
+  #stage{padding:12px 16px;max-width:1480px;margin:0 auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .dot.merah{background:var(--merah);box-shadow:0 0 12px var(--merah-glow)}.dot.biru{background:var(--biru);box-shadow:0 0 12px var(--biru-glow)}
+  .eyebrow{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .panel-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 9px}
+  .panel-h .ttl{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  .mini-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:6px 0 3px;text-align:center}
+  @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .pop{animation:pop .45s ease}
+  @keyframes blink{50%{opacity:.35}}
+
+  .scorestrip{display:grid;grid-template-columns:1fr auto 1fr;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+  .ss-side{padding:10px 16px;text-align:center;position:relative}
+  .ss-side::before{content:"";position:absolute;top:0;left:0;right:0;height:4px}
+  .ss-side.merah{background:linear-gradient(180deg,rgba(226,51,63,.4),rgba(20,6,8,.92))}
+  .ss-side.biru{background:linear-gradient(180deg,rgba(47,107,255,.4),rgba(6,10,26,.92))}
+  .ss-side.merah::before{background:linear-gradient(90deg,transparent,var(--merah-glow),transparent)}
+  .ss-side.biru::before{background:linear-gradient(90deg,transparent,var(--biru-glow),transparent)}
+  .ss-side .lbl{font-size:11px;font-weight:800;letter-spacing:.24em;text-transform:uppercase}
+  .ss-side.merah .lbl{color:var(--merah-glow)}.ss-side.biru .lbl{color:var(--biru-glow)}
+  .ss-side .nm{font-size:13px;color:var(--ink);opacity:.85;margin-top:1px;font-weight:700}
+  .ss-side .sc{font-size:44px;font-weight:900;color:#fff;line-height:1;margin-top:2px}
+  .ss-mid{background:#05080e;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 22px;border-left:1px solid var(--gold-dim);border-right:1px solid var(--gold-dim);min-width:170px}
+  .ss-babak{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .ss-timer{font-size:36px;font-weight:900;line-height:1;margin:2px 0}
+  .ss-timer.run{color:var(--gold)}.ss-timer.end{color:var(--merah-glow);animation:blink 1s infinite}
+  .ss-dots{display:flex;gap:6px;margin-top:3px}
+  .ss-dots i{width:8px;height:8px;border-radius:50%;background:#23304a;display:block}
+  .ss-dots i.on{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+
+  .ketua-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+  .ketua-toolbar>button{border:1px solid var(--line);background:var(--bg2);color:var(--ink);border-radius:9px;padding:9px 12px;font-weight:800;font-size:12.5px;cursor:pointer}
+  #btnBantahan{background:#2a2416;border-color:#5d4a14;color:var(--gold)}
+  #btnBantahan:disabled{opacity:.4;cursor:not-allowed}
+  #btnBatalBantahan{background:#3a2326;border-color:#5a343a;color:#ffb4ba}
+  #btnSelesaiBantahan{background:#13251a;border-color:#2f4a32;color:#8fe6a8}
+  .tb-status{flex:1;min-width:220px;font-size:12.5px;color:var(--muted);padding:0 6px;line-height:1.4}
+  .tb-status b{color:var(--ink)}.tb-status.aktif{color:var(--gold)}
+
+  .ketua-screen{display:grid;gap:10px}
+  .cmd-row{display:grid;grid-template-columns:1fr 270px 1fr 1.05fr;gap:10px;align-items:stretch}
+  .kcorner{padding:13px}
+  .kcorner h3{margin:0 0 9px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+  .krow{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px}
+  .kbtn{border:1px solid var(--line);background:var(--bg2);color:var(--ink);border-radius:10px;padding:12px 6px;font-weight:800;cursor:pointer;font-size:13px}
+  .kbtn:active{transform:scale(.95)}
+  .kbtn.jatuh{grid-column:1/3;background:#1d2a16;border-color:#2f4a22;color:#a8e06a;font-size:14px;padding:13px}
+  .kbtn.huk{background:#2a1418;border-color:#46202a;color:#ff9aa3}
+  .kbtn.win{grid-column:1/3;margin-top:4px;font-size:13px;letter-spacing:.08em;padding:13px}
+  .kcorner.merah .kbtn.win{background:var(--merah);border-color:var(--merah);color:#fff}
+  .kcorner.biru .kbtn.win{background:var(--biru);border-color:var(--biru);color:#fff}
+  .console{padding:13px;text-align:center}
+  .ctrl-row{display:flex;gap:6px;justify-content:center;margin-bottom:7px}
+  .ctrl-row button{flex:1;border:1px solid var(--line);background:var(--bg2);color:var(--ink);border-radius:9px;padding:10px 4px;font-weight:800;cursor:pointer;font-size:12px}
+  .ctrl-row button.go{background:var(--ok);border-color:var(--ok);color:#04210f}
+  .ctrl-row button.stop{background:#3a2326;border-color:#5a343a;color:#ffb4ba}
+  .seg{display:flex;gap:5px;justify-content:center;margin:2px 0;flex-wrap:wrap}
+  .seg button{border:1px solid var(--line);background:var(--bg2);color:var(--muted);border-radius:8px;padding:7px 10px;font-weight:800;cursor:pointer;font-size:12.5px}
+  .seg button.on{background:var(--gold);color:#0a0e15;border-color:var(--gold)}
+  .act-row{display:flex;gap:6px;margin-top:9px}
+  .act-row button{flex:1;border-radius:10px;padding:11px 5px;font-weight:800;cursor:pointer;font-size:11.5px;border:1px solid var(--line)}
+  .btn-resetM{background:#2a1418;border-color:#5a343a;color:#ff9aa3}
+  .btn-baru{background:#13251a;border-color:#2f4a32;color:#8fe6a8}
+  .lampu-set{display:flex;gap:4px;justify-content:center}
+  .lampu{flex:1;max-width:40px;border:1px solid var(--line);border-radius:8px;padding:5px 2px;text-align:center;background:var(--bg2)}
+  .lampu .jn{font-size:8px;color:var(--muted);font-weight:800}
+  .lampu .ic{font-size:15px;line-height:1.2;opacity:.25}
+  .lampu.on{border-color:var(--gold);box-shadow:0 0 10px rgba(241,194,50,.3)}.lampu.on .ic{opacity:1}
+  .logcard{padding:13px}
+  .log{overflow:auto;font-size:12px;max-height:340px}
+  .log .ln{padding:6px 9px;border-bottom:1px solid var(--line);color:var(--muted)}
+  .log .ln b{color:var(--ink)}
+
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(4,6,11,.72);backdrop-filter:blur(3px);z-index:100;padding:20px}
+  .modal.show{display:flex}
+  .modal-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;width:100%;max-width:430px;box-shadow:var(--shadow)}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .modal-title{font-size:17px;font-weight:900;margin-bottom:6px}
+  .modal-x{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:2px 8px;border-radius:8px}
+  .modal-x:hover{color:var(--ink);background:var(--bg2)}
+  .modal-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:8px}
+  .modal-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:14px 0 6px}
+  .modal-label span{color:var(--ink);font-weight:900}
+  .modal-seg{display:flex;gap:8px}
+  .modal-seg button{flex:1;border:1px solid var(--line);background:var(--bg2);color:var(--muted);border-radius:10px;padding:13px;font-weight:800;cursor:pointer;font-size:14px}
+  .modal-seg button.on{background:var(--gold);color:#0a0e15;border-color:var(--gold)}
+  .modal-act{display:flex;gap:8px;margin-top:18px}
+  .modal-act button{flex:1;border-radius:10px;padding:13px;font-weight:800;cursor:pointer;font-size:14px;border:1px solid var(--line)}
+  .m-batal{background:var(--bg2);color:var(--muted)}
+  .m-ok{background:var(--gold);border-color:var(--gold);color:#0a0e15}
+  .tambah-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .tambah-row button{border:1px solid var(--line);border-radius:10px;padding:16px 4px;font-weight:900;cursor:pointer;font-size:15px}
+  .tambah-row button:active{transform:scale(.93)}
+  .tambah-row.merah button{background:#2a1418;border-color:#46202a;color:#ffb9be}
+  .tambah-row.biru button{background:#0e1a33;border-color:#20345a;color:#bcd2ff}
+  .inp{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--ink);font-size:15px;font-weight:700}
+  .inp.m{border-color:#5a2a30}.inp.b{border-color:#243a66}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#3a2326;border:1px solid #5a343a;color:#ffd0d4;padding:10px 16px;border-radius:10px;font-weight:700;font-size:13px;display:none;z-index:200}
+  .toast.show{display:block}
+
+  @media (min-width:1001px){
+    #stage{height:calc(100vh - 56px);overflow:hidden}
+    .ketua-screen{height:100%;grid-template-rows:auto auto minmax(0,1fr)}
+    .cmd-row{min-height:0}
+    .cmd-row>.card{min-height:0;overflow:hidden;display:flex;flex-direction:column}
+    .logcard .log{flex:1;max-height:none}
+  }
+  @media (max-width:1000px){
+    .cmd-row{grid-template-columns:1fr 1fr}.console{grid-column:1/3;order:-1}.logcard{grid-column:1/3}
+  }
+  @media (max-width:700px){
+    .cmd-row{grid-template-columns:1fr}.console,.logcard{grid-column:auto}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><b>SILAT <span>TANDING</span></b><small>Sri Gayong Panglima Ulung</small></div>
+  <span class="role">KETUA PERTANDINGAN</span>
+  <div class="top-right">
+    <div class="kerusi" id="kerusiBox"><span>J1</span><span>J2</span><span>J3</span></div>
+    <div class="conn" id="conn"><i></i><span id="connTxt">Menyambung…</span></div>
+  </div>
+</header>
+
+<main id="stage">
+  <div class="ketua-screen">
+    <div class="scorestrip">
+      <div class="ss-side merah"><div class="lbl">Merah</div><div class="nm" id="nmMerah">-</div><div class="sc num" id="kSkorM">0</div></div>
+      <div class="ss-mid"><div class="ss-babak" id="babakPill">Babak 1 / 3</div><div class="ss-timer num" id="kTimer">2:00</div><div class="ss-dots" id="kDots"></div></div>
+      <div class="ss-side biru"><div class="lbl">Biru</div><div class="nm" id="nmBiru">-</div><div class="sc num" id="kSkorB">0</div></div>
+    </div>
+
+    <div class="ketua-toolbar">
+      <button id="btnPerlawanan">📝 Perlawanan</button>
+      <button id="btnBantahan">⚖️ Bantahan / Pengesahan</button>
+      <button id="btnTambah">➕ Tambah Markah</button>
+      <div class="tb-status" id="bantahanStatus">Tiada bantahan aktif.</div>
+      <button id="btnBatalBantahan" style="display:none">✖ Batal</button>
+      <button id="btnSelesaiBantahan" style="display:none">✓ Selesai</button>
+    </div>
+
+    <div class="cmd-row">
+      <div class="card kcorner merah">
+        <h3><span class="dot merah"></span>Sudut Merah</h3>
+        <div class="krow"><button class="kbtn jatuh" data-jatuh="merah">🤼 Jatuhan +3</button></div>
+        <div class="mini-label">Hukuman</div>
+        <div class="krow"><button class="kbtn huk" data-huk="merah|-1">−1 Ringan</button><button class="kbtn huk" data-huk="merah|-2">−2 Sederhana</button></div>
+        <div class="krow"><button class="kbtn huk" data-huk="merah|-5">−5 Berat 1</button><button class="kbtn huk" data-huk="merah|-10">−10 Berat 2</button></div>
+        <div class="krow"><button class="kbtn win" data-win="merah">🏆 Sudut Merah Menang</button></div>
+      </div>
+
+      <div class="card console">
+        <div class="ctrl-row"><button class="go" id="btnMula">▶ Mula</button><button class="stop" id="btnHenti">⏸ Henti</button><button id="btnReset">↺ Set semula</button></div>
+        <div class="mini-label">Set masa (minit)</div>
+        <div class="seg" id="segMasa"><button data-masa="1">1:00</button><button data-masa="1.5">1:30</button><button data-masa="2">2:00</button><button data-masa="3">3:00</button></div>
+        <div class="mini-label">Bilangan babak</div>
+        <div class="seg" id="segJumlah"><button data-jum="1">1</button><button data-jum="2">2</button><button data-jum="3">3</button></div>
+        <div class="mini-label">Babak semasa</div>
+        <div class="seg" id="segBabak"><button data-bab="1">B1</button><button data-bab="2">B2</button><button data-bab="3">B3</button></div>
+        <div class="mini-label">Undi juri menunggu</div>
+        <div class="lampu-set" id="lampuKetua"></div>
+        <div class="act-row"><button class="btn-resetM" id="btnResetMarkah">↺ Reset Markah</button><button class="btn-baru" id="btnBaru">🆕 Perlawanan Baharu</button></div>
+      </div>
+
+      <div class="card kcorner biru">
+        <h3><span class="dot biru"></span>Sudut Biru</h3>
+        <div class="krow"><button class="kbtn jatuh" data-jatuh="biru">🤼 Jatuhan +3</button></div>
+        <div class="mini-label">Hukuman</div>
+        <div class="krow"><button class="kbtn huk" data-huk="biru|-1">−1 Ringan</button><button class="kbtn huk" data-huk="biru|-2">−2 Sederhana</button></div>
+        <div class="krow"><button class="kbtn huk" data-huk="biru|-5">−5 Berat 1</button><button class="kbtn huk" data-huk="biru|-10">−10 Berat 2</button></div>
+        <div class="krow"><button class="kbtn win" data-win="biru">🏆 Sudut Biru Menang</button></div>
+      </div>
+
+      <div class="card logcard"><div class="panel-h"><div class="ttl">📋 Log Markah</div><div class="eyebrow">Langsung</div></div><div class="log" id="ketuaLog"></div></div>
+    </div>
+  </div>
+</main>
+
+<div class="modal" id="modalPerlawanan"><div class="modal-box">
+  <div class="modal-head"><div class="modal-title">📝 Maklumat Perlawanan</div><button class="modal-x" data-close="modalPerlawanan">✕</button></div>
+  <div class="modal-desc">Nama akan dipaparkan di TV dan fon juri.</div>
+  <div class="modal-label">No. Perlawanan</div>
+  <input class="inp" id="inpNo" maxlength="10">
+  <div class="modal-label" style="color:var(--merah-glow)">Nama Pesilat Merah</div>
+  <input class="inp m" id="inpMerah" maxlength="40">
+  <div class="modal-label" style="color:var(--biru-glow)">Nama Pesilat Biru</div>
+  <input class="inp b" id="inpBiru" maxlength="40">
+  <div class="modal-act"><button class="m-batal" data-close="modalPerlawanan">Batal</button><button class="m-ok" id="mSimpanPerlawanan">Simpan</button></div>
+</div></div>
+
+<div class="modal" id="modalBantahan"><div class="modal-box">
+  <div class="modal-head"><div class="modal-title">⚖️ Mohon Pengesahan</div><button class="modal-x" data-close="modalBantahan">✕</button></div>
+  <div class="modal-desc">Bantahan jurulatih. Juri akan undi YA/TIDAK. Keputusan ikut majoriti 2 dari 3.</div>
+  <div class="modal-label">Jenis Bantahan</div>
+  <div class="modal-seg" id="segJenis"><button data-bjenis="pelanggaran">Pelanggaran</button><button data-bjenis="jatuhan">Jatuhan</button></div>
+  <div class="modal-label">Sudut Terlibat</div>
+  <div class="modal-seg" id="segSisi"><button data-bsisi="merah">Merah</button><button data-bsisi="biru">Biru</button></div>
+  <div class="modal-act"><button class="m-batal" data-close="modalBantahan">Batal</button><button class="m-ok" id="mMohon">Mohon Pengesahan</button></div>
+</div></div>
+
+<div class="modal" id="modalTambah"><div class="modal-box">
+  <div class="modal-head"><div class="modal-title">➕ Tambah Markah</div><button class="modal-x" data-close="modalTambah">✕</button></div>
+  <div class="modal-desc">Contoh: selepas pengesahan Jatuhan SAH, klik +3. Untuk tolak markah, guna butang Hukuman.</div>
+  <div class="modal-label" style="color:var(--merah-glow)">Sudut Merah <span id="tmMerah">(0)</span></div>
+  <div class="tambah-row merah"><button data-tambah="merah|1">+1</button><button data-tambah="merah|2">+2</button><button data-tambah="merah|3">+3</button><button data-tambah="merah|5">+5</button><button data-tambah="merah|10">+10</button></div>
+  <div class="modal-label" style="color:var(--biru-glow)">Sudut Biru <span id="tmBiru">(0)</span></div>
+  <div class="tambah-row biru"><button data-tambah="biru|1">+1</button><button data-tambah="biru|2">+2</button><button data-tambah="biru|3">+3</button><button data-tambah="biru|5">+5</button><button data-tambah="biru|10">+10</button></div>
+  <div class="modal-act"><button class="m-ok" data-close="modalTambah">Selesai</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ================== TETAPAN FIREBASE ================== */
+var DB_URL = "https://skor-silatolahraga-default-rtdb.asia-southeast1.firebasedatabase.app";
+var ROOT = "/silat";
+var WINDOW_MS = 3000;
+var GRACE_MS = 3000;
+var HUK_LABEL = { "-1":"Pelanggaran Ringan", "-2":"Pelanggaran Sederhana", "-5":"Pelanggaran Berat", "-10":"Pelanggaran Berat Ke-2" };
+var JURI = ["j1","j2","j3"];
+
+/* ================== FIREBASE REST ================== */
+function fbUrl(p){ return DB_URL + ROOT + p + ".json"; }
+function fbReq(method, p, data){
+  var opt = { method: method };
+  if(data !== undefined){ opt.body = JSON.stringify(data); }
+  return fetch(fbUrl(p), opt).then(function(r){ if(!r.ok){ throw new Error("HTTP " + r.status); } return r.json(); });
+}
+function setPath(obj, path, val){
+  var parts = path.split("/").filter(function(x){ return x.length > 0; });
+  if(parts.length === 0){ return val; }
+  if(obj === null || typeof obj !== "object"){ obj = {}; }
+  var cur = obj;
+  for(var i = 0; i < parts.length - 1; i++){
+    if(cur[parts[i]] === null || typeof cur[parts[i]] !== "object"){ cur[parts[i]] = {}; }
+    cur = cur[parts[i]];
+  }
+  var last = parts[parts.length - 1];
+  if(val === null){ delete cur[last]; } else { cur[last] = val; }
+  return obj;
+}
+function fbListen(p, onData, onStatus){
+  var cache = null;
+  var es = new EventSource(fbUrl(p));
+  es.addEventListener("put", function(e){
+    var m = JSON.parse(e.data); cache = setPath(cache, m.path, m.data); onData(cache); onStatus(true);
+  });
+  es.addEventListener("patch", function(e){
+    var m = JSON.parse(e.data); var d = m.data || {};
+    Object.keys(d).forEach(function(k){ cache = setPath(cache, (m.path === "/" ? "" : m.path) + "/" + k, d[k]); });
+    onData(cache); onStatus(true);
+  });
+  es.addEventListener("keep-alive", function(){ onStatus(true); });
+  es.onopen = function(){ onStatus(true); };
+  es.onerror = function(){ onStatus(false); };
+  return es;
+}
+
+/* ================== JAM SERVER ================== */
+var clockOffset = 0;
+function syncClock(){
+  var t0 = Date.now();
+  return fbReq("PUT", "/clock/ketua", { ".sv":"timestamp" }).then(function(v){
+    var t1 = Date.now();
+    if(typeof v === "number"){ clockOffset = v - (t0 + t1) / 2; }
+  }).catch(function(){});
+}
+function serverNow(){ return Date.now() + clockOffset; }
+
+/* ================== HELPER ================== */
+function el(id){ return document.getElementById(id); }
+function setTxt(id, v){ var n = el(id); if(n){ n.textContent = v; } }
+function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function jam(ms){ var d = new Date(ms); function p(n){ return (n < 10 ? "0" : "") + n; } return p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds()); }
+function fmtMasa(s){ var m = Math.floor(s / 60), ss = s % 60; return m + ":" + (ss < 10 ? "0" : "") + ss; }
+function labelJenis(j){ return j === "pelanggaran" ? "Pelanggaran" : "Jatuhan"; }
+function labelSisi(s){ return s === "merah" ? "Merah" : "Biru"; }
+function escHtml(s){ return String(s).replace(/[&<>"]/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;" }[c]; }); }
+var toastTimer = null;
+function toast(msg){ var t = el("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 3500); }
+var audioCtx = null;
+function beep(freq, dur){
+  try{
+    if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if(audioCtx.state === "suspended"){ audioCtx.resume(); }
+    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = "square"; o.frequency.value = freq; g.gain.value = 0.05;
+    o.connect(g); g.connect(audioCtx.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.stop(audioCtx.currentTime + dur);
+  }catch(e){}
+}
+
+/* ================== STATE ================== */
+function stateBaru(no){
+  return { pid:genId(), noPerlawanan:no || "1", namaMerah:"Pesilat Merah", namaBiru:"Pesilat Biru",
+    skorMerah:0, skorBiru:0, babak:1, jumlahBabak:3, masaSet:120, masaBaki:120,
+    masaJalan:false, masaTamat:false, pemenang:null, bantahan:null, tvNotis:null, flash:null };
+}
+var state = stateBaru();
+var logList = [];
+var kerusi = {};
+var pending = {}, selesai = {}, lastMatch = {};
+var timerInterval = null;
+var modalJenis = "pelanggaran", modalSisi = "biru";
+var connOn = null;
+
+function makeWriter(path, getter){
+  var busy = false, dirty = false;
+  function run(){
+    if(busy){ dirty = true; return; }
+    busy = true;
+    fbReq("PUT", path, getter()).then(done, function(){ toast("⚠ Gagal simpan ke Firebase. Semak internet."); done(); });
+    function done(){ busy = false; if(dirty){ dirty = false; run(); } }
+  }
+  return run;
+}
+var simpanState = makeWriter("/state", function(){ return state; });
+var simpanLog = makeWriter("/log", function(){ return logList; });
+
+function tambahLog(teks){
+  logList.unshift({ t:Date.now(), m:teks });
+  if(logList.length > 40){ logList.pop(); }
+  renderLog(); simpanLog();
+}
+
+/* ================== ENJIN PADANAN 2/3 ================== */
+function buangUndi(id){
+  selesai[id] = true; delete pending[id];
+  fbReq("DELETE", "/votes/" + id).catch(function(){});
+}
+function sesiSah(j, sesi){ var k = kerusi[j]; return !!(k && k.sesi === sesi); }
+function onVotes(data){
+  if(!data || typeof data !== "object"){ return; }
+  Object.keys(data).forEach(function(id){
+    if(selesai[id] || pending[id]){ return; }
+    var v = data[id];
+    if(!v || typeof v !== "object"){ return; }
+    terimaUndi(id, v);
+  });
+  renderLampu();
+}
+function terimaUndi(id, v){
+  var umur = serverNow() - v.t;
+  if(v.pid !== state.pid || state.pemenang || state.bantahan || !sesiSah(v.juri, v.sesi) || umur > WINDOW_MS + GRACE_MS){
+    buangUndi(id); return;
+  }
+  var key = v.sisi + "|" + v.poin;
+  var lm = lastMatch[key];
+  if(lm && Math.abs(v.t - lm.t) <= WINDOW_MS && lm.juri.indexOf(v.juri) === -1){
+    lm.juri.push(v.juri); buangUndi(id); return;
+  }
+  pending[id] = v;
+  cubaPadan(key);
+}
+function cubaPadan(key){
+  var ids = Object.keys(pending).filter(function(id){ var v = pending[id]; return v.sisi + "|" + v.poin === key; });
+  ids.sort(function(a, b){ return pending[a].t - pending[b].t; });
+  for(var i = 0; i < ids.length; i++){
+    for(var j = i + 1; j < ids.length; j++){
+      var a = pending[ids[i]], b = pending[ids[j]];
+      if(a.juri !== b.juri && Math.abs(a.t - b.t) <= WINDOW_MS){ sahkanPadanan(ids[i], ids[j], key); return; }
+    }
+  }
+}
+function sahkanPadanan(ida, idb, key){
+  var va = pending[ida], vb = pending[idb];
+  var anchor = Math.min(va.t, vb.t);
+  var juriList = [va.juri, vb.juri];
+  Object.keys(pending).forEach(function(id){
+    var v = pending[id];
+    if(id !== ida && id !== idb && v.sisi + "|" + v.poin === key && Math.abs(v.t - anchor) <= WINDOW_MS && juriList.indexOf(v.juri) === -1){
+      juriList.push(v.juri); buangUndi(id);
+    }
+  });
+  buangUndi(ida); buangUndi(idb);
+  lastMatch[key] = { t:anchor, juri:juriList };
+  var nilai = va.poin === "tangan" ? 1 : 2;
+  if(va.sisi === "merah"){ state.skorMerah += nilai; } else { state.skorBiru += nilai; }
+  state.flash = { id:genId(), sisi:va.sisi };
+  var nama = juriList.map(function(j){ return j.toUpperCase(); }).join(", ");
+  tambahLog("✅ <b>" + va.sisi.toUpperCase() + " +" + nilai + "</b> — " + (va.poin === "tangan" ? "Tangan" : "Kaki") + " disahkan (" + nama + ")");
+  beep(880, 0.12); kesanPop(va.sisi); renderSemua(); simpanState();
+}
+
+/* ================== TINDAKAN KETUA ================== */
+function jatuhan(sisi){
+  if(state.pemenang){ return; }
+  if(sisi === "merah"){ state.skorMerah += 3; } else { state.skorBiru += 3; }
+  state.flash = { id:genId(), sisi:sisi };
+  tambahLog("🤼 <b>" + sisi.toUpperCase() + " +3</b> — Jatuhan (Ketua)");
+  beep(520, 0.14); kesanPop(sisi); renderSemua(); simpanState();
+}
+function hukuman(sisi, nilai){
+  if(state.pemenang){ return; }
+  if(sisi === "merah"){ state.skorMerah = Math.max(0, state.skorMerah + nilai); } else { state.skorBiru = Math.max(0, state.skorBiru + nilai); }
+  var lbl = HUK_LABEL[String(nilai)] || "Pelanggaran";
+  state.tvNotis = { id:genId(), sisi:sisi, teks:lbl };
+  tambahLog("⚠️ <b>" + sisi.toUpperCase() + " " + nilai + "</b> — " + lbl + " (Ketua)");
+  beep(300, 0.16); renderSemua(); simpanState();
+}
+function tambahMarkah(sisi, nilai){
+  if(state.pemenang){ return; }
+  if(sisi === "merah"){ state.skorMerah += nilai; } else { state.skorBiru += nilai; }
+  state.flash = { id:genId(), sisi:sisi };
+  tambahLog("➕ <b>" + sisi.toUpperCase() + " +" + nilai + "</b> — Ditambah (Ketua)");
+  beep(600, 0.12); kesanPop(sisi); renderSemua(); simpanState();
+}
+function pilihPemenang(sisi){
+  if(!confirm("Sahkan Sudut " + labelSisi(sisi) + " MENANG?")){ return; }
+  state.pemenang = sisi; hentiMasa(true);
+  tambahLog("🏆 <b>PEMENANG: " + sisi.toUpperCase() + "</b>");
+  beep(990, 0.25); renderSemua(); simpanState();
+}
+
+/* ================== BANTAHAN ================== */
+function mohonBantahan(){
+  state.bantahan = { id:genId(), jenis:modalJenis, sisi:modalSisi, undian:{}, keputusan:null, keputusanMasa:0 };
+  tambahLog("⚖️ Ketua mohon pengesahan " + labelJenis(modalJenis) + " — Sudut " + labelSisi(modalSisi));
+  beep(700, 0.15); tutupModal("modalBantahan"); renderSemua(); simpanState();
+}
+function onBantahanUndi(data){
+  var b = state.bantahan;
+  if(!b || b.keputusan || !data){ return; }
+  var ubah = false;
+  if(!b.undian){ b.undian = {}; }
+  JURI.forEach(function(j){
+    var u = data[j];
+    if(u && u.bid === b.id && sesiSah(j, u.sesi) && b.undian[j] !== u.jawapan){ b.undian[j] = u.jawapan; ubah = true; }
+  });
+  if(!ubah){ return; }
+  var ya = kiraUndi(b, "ya"), tidak = kiraUndi(b, "tidak");
+  if(ya >= 2){ b.keputusan = "sah"; }
+  else if(tidak >= 2){ b.keputusan = "tidak_sah"; }
+  if(b.keputusan){
+    b.keputusanMasa = Date.now();
+    tambahLog("⚖️ <b>Pengesahan " + labelJenis(b.jenis) + " (" + b.sisi.toUpperCase() + "): " + (b.keputusan === "sah" ? "SAH ✔" : "TIDAK SAH ✘") + "</b>");
+    beep(b.keputusan === "sah" ? 880 : 300, 0.22);
+  } else { beep(660, 0.05); }
+  renderSemua(); simpanState();
+}
+function kiraUndi(b, val){ var c = 0; var u = b.undian || {}; JURI.forEach(function(j){ if(u[j] === val){ c++; } }); return c; }
+function tamatBantahan(msg){
+  if(!state.bantahan){ return; }
+  if(msg){ tambahLog(msg); }
+  state.bantahan = null;
+  fbReq("DELETE", "/bantahanUndi").catch(function(){});
+  renderSemua(); simpanState();
+}
+
+/* ================== MASA ================== */
+function tick(){
+  if(state.masaBaki > 0){
+    state.masaBaki--;
+    if(state.masaBaki === 0){
+      hentiMasa(true); state.masaTamat = true;
+      tambahLog("⏱️ <b>Masa tamat</b> — Babak " + state.babak); beep(440, 0.6);
+    }
+    renderMasa(); simpanState();
+  }
+}
+function mulaMasa(){
+  if(state.masaJalan || state.pemenang || state.masaBaki <= 0){ return; }
+  state.masaJalan = true; state.masaTamat = false;
+  timerInterval = setInterval(tick, 1000);
+  renderMasa(); simpanState();
+}
+function hentiMasa(senyap){
+  state.masaJalan = false;
+  if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+  renderMasa();
+  if(!senyap){ simpanState(); }
+}
+function resetMasa(){ hentiMasa(true); state.masaBaki = state.masaSet; state.masaTamat = false; renderMasa(); simpanState(); }
+function setMasaMinit(m){ hentiMasa(true); state.masaSet = Math.round(m * 60); state.masaBaki = state.masaSet; state.masaTamat = false; renderSemua(); simpanState(); }
+function pilihBabak(b){ if(b > state.jumlahBabak){ return; } state.babak = b; renderSemua(); simpanState(); }
+function setJumlahBabak(j){ state.jumlahBabak = j; if(state.babak > j){ state.babak = j; } renderSemua(); simpanState(); }
+
+/* ================== RESET ================== */
+function resetMarkah(){
+  if(!confirm("Reset markah kedua-dua sudut kepada 0?")){ return; }
+  state.skorMerah = 0; state.skorBiru = 0; state.pemenang = null;
+  tambahLog("↺ Markah di-reset (babak & masa kekal)"); renderSemua(); simpanState();
+}
+function perlawananBaharu(){
+  if(!confirm("Mula perlawanan baharu? Markah, babak dan masa akan di-reset.")){ return; }
+  hentiMasa(true);
+  var noLama = parseInt(state.noPerlawanan, 10);
+  var s = stateBaru(isNaN(noLama) ? "1" : String(noLama + 1));
+  s.masaSet = state.masaSet; s.masaBaki = state.masaSet; s.jumlahBabak = state.jumlahBabak;
+  state = s;
+  pending = {}; lastMatch = {};
+  fbReq("DELETE", "/votes").catch(function(){});
+  fbReq("DELETE", "/bantahanUndi").catch(function(){});
+  logList = [];
+  tambahLog("🆕 Perlawanan " + state.noPerlawanan + " dimulakan");
+  renderSemua(); simpanState();
+  bukaPerlawanan();
+}
+
+/* ================== MODAL ================== */
+function bukaModal(id){ el(id).classList.add("show"); }
+function tutupModal(id){ el(id).classList.remove("show"); }
+function bukaPerlawanan(){
+  el("inpNo").value = state.noPerlawanan; el("inpMerah").value = state.namaMerah; el("inpBiru").value = state.namaBiru;
+  bukaModal("modalPerlawanan");
+}
+function simpanPerlawanan(){
+  state.noPerlawanan = el("inpNo").value.trim() || state.noPerlawanan;
+  state.namaMerah = el("inpMerah").value.trim() || "Pesilat Merah";
+  state.namaBiru = el("inpBiru").value.trim() || "Pesilat Biru";
+  tutupModal("modalPerlawanan");
+  tambahLog("📝 Perlawanan " + escHtml(state.noPerlawanan) + ": " + escHtml(state.namaMerah) + " vs " + escHtml(state.namaBiru));
+  renderSemua(); simpanState();
+}
+function markModalSeg(){
+  el("segJenis").querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-bjenis") === modalJenis); });
+  el("segSisi").querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-bsisi") === modalSisi); });
+}
+
+/* ================== RENDER ================== */
+function kesanPop(sisi){ var n = el(sisi === "merah" ? "kSkorM" : "kSkorB"); if(n){ n.classList.remove("pop"); void n.offsetWidth; n.classList.add("pop"); } }
+function renderSemua(){ renderSkor(); renderMasa(); renderBabak(); renderBantahan(); renderLampu(); setTxt("tmMerah", "(" + state.skorMerah + ")"); setTxt("tmBiru", "(" + state.skorBiru + ")"); }
+function renderSkor(){
+  setTxt("kSkorM", state.skorMerah); setTxt("kSkorB", state.skorBiru);
+  setTxt("nmMerah", state.namaMerah); setTxt("nmBiru", state.namaBiru);
+}
+function renderMasa(){
+  var n = el("kTimer"); n.textContent = fmtMasa(state.masaBaki);
+  n.classList.toggle("run", state.masaJalan); n.classList.toggle("end", state.masaTamat);
+}
+function renderBabak(){
+  setTxt("babakPill", "Babak " + state.babak + " / " + state.jumlahBabak + "  •  P" + state.noPerlawanan);
+  var h = ""; for(var i = 1; i <= state.jumlahBabak; i++){ h += "<i class=\"" + (i <= state.babak ? "on" : "") + "\"></i>"; }
+  el("kDots").innerHTML = h;
+  markSeg("segJumlah", "data-jum", state.jumlahBabak); markSeg("segBabak", "data-bab", state.babak);
+  markSeg("segMasa", "data-masa", state.masaSet / 60);
+}
+function markSeg(id, attr, val){ el(id).querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", parseFloat(b.getAttribute(attr)) === val); }); }
+function renderLog(){
+  var box = el("ketuaLog");
+  if(logList.length === 0){ box.innerHTML = "<div class=\"ln\">Belum ada rekod.</div>"; return; }
+  box.innerHTML = logList.map(function(l){ return "<div class=\"ln\"><b>" + jam(l.t) + "</b> &nbsp;" + l.m + "</div>"; }).join("");
+}
+function renderLampu(){
+  var h = "";
+  ["merah", "biru"].forEach(function(sisi){
+    JURI.forEach(function(j){
+      var aktif = null;
+      Object.keys(pending).forEach(function(id){ var v = pending[id]; if(v.juri === j && v.sisi === sisi){ aktif = v; } });
+      var warna = sisi === "merah" ? "var(--merah)" : "var(--biru)";
+      var ikon = aktif ? (aktif.poin === "tangan" ? "✊" : "🦵") : "·";
+      h += "<div class=\"lampu" + (aktif ? " on" : "") + "\" style=\"border-bottom:2px solid " + warna + "\"><div class=\"jn\">" + j.toUpperCase() + "</div><div class=\"ic\">" + ikon + "</div></div>";
+    });
+  });
+  el("lampuKetua").innerHTML = h;
+}
+function renderBantahan(){
+  var st = el("bantahanStatus"), b = state.bantahan;
+  if(b){
+    st.classList.add("aktif");
+    if(b.keputusan){
+      st.innerHTML = "<b>KEPUTUSAN: " + (b.keputusan === "sah" ? "✔ SAH" : "✘ TIDAK SAH") + "</b> — " + labelJenis(b.jenis) + " (" + labelSisi(b.sisi) + ")";
+    } else {
+      st.innerHTML = "⚖️ <b>Pengesahan " + labelJenis(b.jenis) + "</b> (" + labelSisi(b.sisi) + ") — Undian: <b>YA " + kiraUndi(b, "ya") + " | TIDAK " + kiraUndi(b, "tidak") + "</b>";
+    }
+  } else { st.classList.remove("aktif"); st.textContent = "Tiada bantahan aktif."; }
+  el("btnBantahan").disabled = !!b;
+  el("btnBatalBantahan").style.display = (b && !b.keputusan) ? "inline-block" : "none";
+  el("btnSelesaiBantahan").style.display = (b && b.keputusan) ? "inline-block" : "none";
+}
+function renderKerusi(){
+  var now = serverNow();
+  var h = "";
+  JURI.forEach(function(j){
+    var k = kerusi[j];
+    var on = k && typeof k.at === "number" && (now - k.at) < 30000;
+    h += "<span class=\"" + (on ? "on" : "") + "\">" + j.toUpperCase() + (on ? " ●" : " ○") + "</span>";
+  });
+  el("kerusiBox").innerHTML = h;
+}
+function setConn(on){
+  if(on === connOn){ return; }
+  connOn = on;
+  el("conn").classList.toggle("on", on);
+  setTxt("connTxt", on ? "Bersambung" : "Terputus");
+}
+
+/* ================== WIRING ================== */
+function wire(){
+  document.querySelectorAll("[data-jatuh]").forEach(function(b){ b.addEventListener("click", function(){ jatuhan(b.getAttribute("data-jatuh")); }); });
+  document.querySelectorAll("[data-huk]").forEach(function(b){ b.addEventListener("click", function(){ var p = b.getAttribute("data-huk").split("|"); hukuman(p[0], parseInt(p[1], 10)); }); });
+  document.querySelectorAll("[data-win]").forEach(function(b){ b.addEventListener("click", function(){ pilihPemenang(b.getAttribute("data-win")); }); });
+  document.querySelectorAll("[data-tambah]").forEach(function(b){ b.addEventListener("click", function(){ var p = b.getAttribute("data-tambah").split("|"); tambahMarkah(p[0], parseInt(p[1], 10)); }); });
+  document.querySelectorAll("[data-close]").forEach(function(b){ b.addEventListener("click", function(){ tutupModal(b.getAttribute("data-close")); }); });
+  document.querySelectorAll(".modal").forEach(function(m){ m.addEventListener("click", function(e){ if(e.target === m){ tutupModal(m.id); } }); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape"){ document.querySelectorAll(".modal").forEach(function(m){ tutupModal(m.id); }); } });
+  el("btnMula").addEventListener("click", mulaMasa);
+  el("btnHenti").addEventListener("click", function(){ hentiMasa(false); });
+  el("btnReset").addEventListener("click", resetMasa);
+  el("btnResetMarkah").addEventListener("click", resetMarkah);
+  el("btnBaru").addEventListener("click", perlawananBaharu);
+  el("segMasa").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ setMasaMinit(parseFloat(b.getAttribute("data-masa"))); }); });
+  el("segJumlah").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ setJumlahBabak(parseInt(b.getAttribute("data-jum"), 10)); }); });
+  el("segBabak").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ pilihBabak(parseInt(b.getAttribute("data-bab"), 10)); }); });
+  el("btnPerlawanan").addEventListener("click", bukaPerlawanan);
+  el("mSimpanPerlawanan").addEventListener("click", simpanPerlawanan);
+  el("btnBantahan").addEventListener("click", function(){ if(state.bantahan){ return; } markModalSeg(); bukaModal("modalBantahan"); });
+  el("btnTambah").addEventListener("click", function(){ renderSemua(); bukaModal("modalTambah"); });
+  el("segJenis").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ modalJenis = b.getAttribute("data-bjenis"); markModalSeg(); }); });
+  el("segSisi").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ modalSisi = b.getAttribute("data-bsisi"); markModalSeg(); }); });
+  el("mMohon").addEventListener("click", mohonBantahan);
+  el("btnBatalBantahan").addEventListener("click", function(){ tamatBantahan("⚖️ Bantahan dibatalkan oleh Ketua"); });
+  el("btnSelesaiBantahan").addEventListener("click", function(){ tamatBantahan(null); });
+}
+
+/* ================== GELUNG LATAR ================== */
+setInterval(function(){
+  var now = serverNow(), ubah = false;
+  Object.keys(pending).forEach(function(id){ if(now - pending[id].t > WINDOW_MS + GRACE_MS){ buangUndi(id); ubah = true; } });
+  if(ubah){ renderLampu(); }
+  if(state.bantahan && state.bantahan.keputusan && Date.now() - state.bantahan.keputusanMasa >= 4000){ tamatBantahan(null); }
+}, 500);
+setInterval(renderKerusi, 3000);
+setInterval(syncClock, 60000);
+
+/* ================== MULA ================== */
+function mula(){
+  wire(); renderSemua(); renderLog(); renderKerusi();
+  syncClock().then(function(){
+    return Promise.all([fbReq("GET", "/state"), fbReq("GET", "/log")]);
+  }).then(function(r){
+    var s = r[0], lg = r[1];
+    if(s && typeof s === "object" && s.pid){
+      var d = stateBaru();
+      Object.keys(s).forEach(function(k){ d[k] = s[k]; });
+      d.masaJalan = false;
+      if(d.bantahan && !d.bantahan.undian){ d.bantahan.undian = {}; }
+      state = d;
+    }
+    if(Array.isArray(lg)){ logList = lg.filter(function(x){ return x; }); }
+    else { tambahLog("🟢 Sistem Ketua dihidupkan"); }
+    renderSemua(); renderLog(); simpanState();
+    setConn(true);
+    var kerusiSedia = false;
+    fbListen("/kerusi", function(d){
+      kerusi = d || {}; renderKerusi();
+      if(!kerusiSedia){
+        kerusiSedia = true;
+        fbListen("/votes", onVotes, setConn);
+        fbListen("/bantahanUndi", onBantahanUndi, setConn);
+      }
+    }, setConn);
+  }).catch(function(){
+    setConn(false);
+    toast("⚠ Tak dapat sambung ke Firebase. Semak internet, kemudian muat semula halaman.");
+  });
+}
+window.addEventListener("beforeunload", function(e){ if(state.masaJalan){ e.preventDefault(); e.returnValue = ""; } });
+mula();
+</script>
+</body>
+</html>

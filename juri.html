@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0a0e15">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Juri — Silat Tanding</title>
+<style>
+  :root{
+    --bg:#0a0e15;--bg2:#0e1420;--panel:#121a28;--line:#1f2c40;
+    --ink:#eaf0f8;--muted:#8595ad;--gold:#f1c232;--gold-dim:#5d4a14;
+    --merah:#e2333f;--merah-glow:#ff5662;--merah-deep:#3a0d12;
+    --biru:#2f6bff;--biru-glow:#5d93ff;--biru-deep:#0c1c45;--ok:#21c779;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+  .app{min-height:100%;display:flex;flex-direction:column;padding:10px 12px 14px;gap:10px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .badge{font-size:15px;font-weight:900;letter-spacing:.12em;color:#0a0e15;background:var(--gold);padding:6px 14px;border-radius:999px}
+  .info{flex:1;text-align:center;font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;font-weight:800}
+  .info b{color:var(--ink)}
+  .conn{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:800}
+  .conn i{width:10px;height:10px;border-radius:50%;background:#5a343a;display:block}
+  .conn.on i{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+  .grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .corner{border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--line)}
+  .corner.merah{background:linear-gradient(180deg,var(--merah-deep),#160a0c)}
+  .corner.biru{background:linear-gradient(180deg,var(--biru-deep),#0a0e1c)}
+  .corner h3{margin:2px 0 0;text-align:center;font-size:13px;letter-spacing:.2em;text-transform:uppercase}
+  .corner.merah h3{color:var(--merah-glow)}.corner.biru h3{color:var(--biru-glow)}
+  .corner .who{text-align:center;font-size:12px;color:var(--ink);opacity:.8;font-weight:700;min-height:16px}
+  .pbtn{flex:1;min-height:110px;border:none;border-radius:16px;color:#fff;font-weight:900;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .07s,filter .07s}
+  .pbtn .v{font-size:54px;line-height:1}
+  .pbtn .t{font-size:14px;letter-spacing:.08em}
+  .pbtn:active{transform:scale(.95);filter:brightness(1.3)}
+  .corner.merah .pbtn{background:var(--merah)}.corner.merah .pbtn.kaki{background:#b9242f}
+  .corner.biru .pbtn{background:var(--biru)}.corner.biru .pbtn.kaki{background:#1f50d6}
+  .pbtn.sent{box-shadow:0 0 0 4px var(--gold) inset}
+  .foot{text-align:center;font-size:11px;color:var(--muted);min-height:16px}
+  .foot b{color:var(--ok)}
+
+  .panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:16px;background:var(--panel);border:1px solid var(--gold-dim);border-radius:18px}
+  .eyebrow{font-size:13px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:800}
+  .big{font-size:26px;font-weight:900;line-height:1.25}
+  .sub{color:var(--muted);font-size:14px;line-height:1.5}
+  .yn{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:520px}
+  .yn button{border:none;border-radius:18px;padding:38px 10px;font-weight:900;font-size:22px;color:#fff;cursor:pointer}
+  .yn button:active{transform:scale(.96)}
+  .yn .ya{background:var(--ok)}.yn .tidak{background:var(--merah)}
+  .yn button.sel{outline:4px solid var(--gold);outline-offset:3px}
+  .res{font-size:44px;font-weight:900}
+  .res.sah{color:var(--ok)}.res.tidak{color:var(--merah-glow)}
+  .pick{display:grid;gap:12px;width:100%;max-width:360px}
+  .pick button{border:1px solid var(--gold-dim);background:#2a2416;color:var(--gold);border-radius:16px;padding:24px;font-size:24px;font-weight:900;cursor:pointer}
+  .btn-gold{border:none;background:var(--gold);color:#0a0e15;border-radius:14px;padding:16px 22px;font-size:16px;font-weight:900;cursor:pointer}
+  .hide{display:none!important}
+  @media (orientation:landscape) and (max-height:500px){ .pbtn{min-height:70px}.pbtn .v{font-size:40px} }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <span class="badge" id="badge">JURI</span>
+    <div class="info" id="info">Menyambung…</div>
+    <div class="conn" id="conn"><i></i></div>
+  </div>
+
+  <!-- pilih kerusi -->
+  <div class="panel hide" id="vPilih">
+    <div class="eyebrow">Pilih Kerusi Juri</div>
+    <div class="sub">Pilih kerusi tempat anda duduk.</div>
+    <div class="pick"><button data-pilih="1">JURI 1</button><button data-pilih="2">JURI 2</button><button data-pilih="3">JURI 3</button></div>
+  </div>
+
+  <!-- kerusi diambil -->
+  <div class="panel hide" id="vDiambil">
+    <div class="eyebrow">Kerusi Diambil</div>
+    <div class="big">Kerusi ini kini digunakan<br>oleh peranti lain.</div>
+    <div class="sub">Juri baru telah mengambil alih. Jika anda masih juri kerusi ini, tekan butang di bawah.</div>
+    <button class="btn-gold" id="btnAmbil">Ambil Semula Kerusi</button>
+  </div>
+
+  <!-- markah -->
+  <div class="grid hide" id="vMarkah">
+    <div class="corner merah">
+      <h3>Merah</h3><div class="who" id="nmMerah"></div>
+      <button class="pbtn" data-undi="merah|tangan"><span class="v">1</span><span class="t">✊ TANGAN</span></button>
+      <button class="pbtn kaki" data-undi="merah|kaki"><span class="v">2</span><span class="t">🦵 KAKI</span></button>
+    </div>
+    <div class="corner biru">
+      <h3>Biru</h3><div class="who" id="nmBiru"></div>
+      <button class="pbtn" data-undi="biru|tangan"><span class="v">1</span><span class="t">✊ TANGAN</span></button>
+      <button class="pbtn kaki" data-undi="biru|kaki"><span class="v">2</span><span class="t">🦵 KAKI</span></button>
+    </div>
+  </div>
+
+  <!-- bantahan -->
+  <div class="panel hide" id="vBantahan">
+    <div class="eyebrow">Bantahan Jurulatih</div>
+    <div class="big" id="bTajuk">Pengesahan</div>
+    <div class="sub">Adakah ia sah?</div>
+    <div class="yn"><button class="ya" data-bvote="ya">✔ YA<br>SAH</button><button class="tidak" data-bvote="tidak">✘ TIDAK<br>TAK SAH</button></div>
+    <div class="sub" id="bUndian"></div>
+  </div>
+
+  <!-- keputusan -->
+  <div class="panel hide" id="vKeputusan">
+    <div class="eyebrow">Keputusan Pengesahan</div>
+    <div class="big" id="kTajuk"></div>
+    <div class="res" id="kRes"></div>
+  </div>
+
+  <!-- tamat -->
+  <div class="panel hide" id="vTamat">
+    <div class="eyebrow">Perlawanan Tamat</div>
+    <div class="big" id="tPemenang"></div>
+    <div class="sub">Tunggu Ketua mulakan perlawanan seterusnya.</div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+"use strict";
+var DB_URL = "https://skor-silatolahraga-default-rtdb.asia-southeast1.firebasedatabase.app";
+var ROOT = "/silat";
+
+function fbUrl(p){ return DB_URL + ROOT + p + ".json"; }
+function fbReq(method, p, data){
+  var opt = { method: method };
+  if(data !== undefined){ opt.body = JSON.stringify(data); }
+  return fetch(fbUrl(p), opt).then(function(r){ if(!r.ok){ throw new Error("HTTP " + r.status); } return r.json(); });
+}
+function setPath(obj, path, val){
+  var parts = path.split("/").filter(function(x){ return x.length > 0; });
+  if(parts.length === 0){ return val; }
+  if(obj === null || typeof obj !== "object"){ obj = {}; }
+  var cur = obj;
+  for(var i = 0; i < parts.length - 1; i++){
+    if(cur[parts[i]] === null || typeof cur[parts[i]] !== "object"){ cur[parts[i]] = {}; }
+    cur = cur[parts[i]];
+  }
+  var last = parts[parts.length - 1];
+  if(val === null){ delete cur[last]; } else { cur[last] = val; }
+  return obj;
+}
+function fbListen(p, onData, onStatus){
+  var cache = null;
+  var es = new EventSource(fbUrl(p));
+  es.addEventListener("put", function(e){ var m = JSON.parse(e.data); cache = setPath(cache, m.path, m.data); onData(cache); onStatus(true); });
+  es.addEventListener("patch", function(e){
+    var m = JSON.parse(e.data); var d = m.data || {};
+    Object.keys(d).forEach(function(k){ cache = setPath(cache, (m.path === "/" ? "" : m.path) + "/" + k, d[k]); });
+    onData(cache); onStatus(true);
+  });
+  es.addEventListener("keep-alive", function(){ onStatus(true); });
+  es.onopen = function(){ onStatus(true); };
+  es.onerror = function(){ onStatus(false); };
+  return es;
+}
+
+/* ================== HELPER ================== */
+function el(id){ return document.getElementById(id); }
+function setTxt(id, v){ var n = el(id); if(n){ n.textContent = v; } }
+function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function labelJenis(j){ return j === "pelanggaran" ? "Pelanggaran" : "Jatuhan"; }
+function labelSisi(s){ return s === "merah" ? "Merah" : "Biru"; }
+function getar(ms){ try{ if(navigator.vibrate){ navigator.vibrate(ms); } }catch(e){} }
+
+var clockOffset = 0;
+function syncClock(){
+  var t0 = Date.now();
+  return fbReq("PUT", "/clock/" + JURI_ID, { ".sv":"timestamp" }).then(function(v){
+    var t1 = Date.now();
+    if(typeof v === "number"){ clockOffset = v - (t0 + t1) / 2; }
+  }).catch(function(){});
+}
+function serverNow(){ return Date.now() + clockOffset; }
+
+/* ================== STATE ================== */
+var params = new URLSearchParams(location.search);
+var noJuri = parseInt(params.get("j"), 10);
+var JURI_ID = (noJuri >= 1 && noJuri <= 3) ? "j" + noJuri : null;
+var SESI = genId();
+var claimed = false, diambil = false;
+var state = null;
+var connOn = null;
+var queue = [];
+var hbTimer = null;
+
+function setConn(on){
+  if(on === connOn){ return; }
+  connOn = on;
+  el("conn").classList.toggle("on", on);
+}
+function tunjuk(id){
+  ["vPilih","vDiambil","vMarkah","vBantahan","vKeputusan","vTamat"].forEach(function(v){ el(v).classList.toggle("hide", v !== id); });
+}
+
+/* ================== KERUSI ================== */
+function ambilKerusi(){
+  diambil = false; claimed = false;
+  return fbReq("PUT", "/kerusi/" + JURI_ID, { sesi:SESI, at:{ ".sv":"timestamp" } }).then(function(){
+    claimed = true; render();
+  }).catch(function(){ setTxt("foot", "⚠ Gagal sambung. Cuba lagi…"); setTimeout(ambilKerusi, 2000); });
+}
+function heartbeat(){
+  if(!claimed || diambil){ return; }
+  fbReq("PUT", "/kerusi/" + JURI_ID, { sesi:SESI, at:{ ".sv":"timestamp" } }).catch(function(){});
+}
+function onKerusi(d){
+  if(!claimed){ return; }
+  if(d && d.sesi && d.sesi !== SESI){
+    diambil = true; getar([100, 60, 100]); render();
+  }
+}
+
+/* ================== UNDI MARKAH ================== */
+function undi(sisi, poin, btn){
+  if(!state || diambil || state.pemenang || state.bantahan){ return; }
+  var id = genId();
+  var v = { juri:JURI_ID, sesi:SESI, pid:state.pid, sisi:sisi, poin:poin, t:Math.round(serverNow()) };
+  queue.push({ id:id, v:v, cuba:0 });
+  getar(40);
+  btn.classList.add("sent");
+  setTimeout(function(){ btn.classList.remove("sent"); }, 250);
+  hantarQueue();
+}
+var hantarBusy = false;
+function hantarQueue(){
+  if(hantarBusy || queue.length === 0){ return; }
+  hantarBusy = true;
+  var item = queue[0];
+  fbReq("PUT", "/votes/" + item.id, item.v).then(function(){
+    queue.shift();
+    var jenis = item.v.poin === "tangan" ? "Tangan +1" : "Kaki +2";
+    el("foot").innerHTML = "<b>✓ Dihantar:</b> " + labelSisi(item.v.sisi) + " " + jenis;
+    hantarBusy = false; hantarQueue();
+  }).catch(function(){
+    item.cuba++;
+    if(serverNow() - item.v.t > 6000){ queue.shift(); setTxt("foot", "⚠ Undi lewat & dibuang (internet lemah)"); }
+    else { setTxt("foot", "⏳ Menghantar semula…"); }
+    hantarBusy = false;
+    setTimeout(hantarQueue, 700);
+  });
+}
+
+/* ================== BANTAHAN ================== */
+var undiBantahan = {};
+function undiBantah(jawapan){
+  var b = state && state.bantahan;
+  if(!b || b.keputusan || diambil){ return; }
+  undiBantahan[b.id] = jawapan;
+  getar(50); render();
+  fbReq("PUT", "/bantahanUndi/" + JURI_ID, { bid:b.id, sesi:SESI, jawapan:jawapan }).then(function(){
+    setTxt("foot", "✓ Undian anda direkod");
+  }).catch(function(){ setTxt("foot", "⚠ Gagal hantar. Tekan sekali lagi."); });
+}
+
+/* ================== RENDER ================== */
+function render(){
+  if(!JURI_ID){ tunjuk("vPilih"); setTxt("info", "Pilih kerusi"); return; }
+  setTxt("badge", "JURI " + noJuri);
+  if(diambil){ tunjuk("vDiambil"); return; }
+  if(!state){ tunjuk("vMarkah"); setTxt("info", "Menyambung…"); return; }
+  el("info").innerHTML = "Perlawanan <b>" + (state.noPerlawanan || "-") + "</b> • Babak <b>" + (state.babak || 1) + "</b>";
+  setTxt("nmMerah", state.namaMerah || "");
+  setTxt("nmBiru", state.namaBiru || "");
+  var b = state.bantahan;
+  if(state.pemenang){
+    setTxt("tPemenang", "🏆 Sudut " + labelSisi(state.pemenang) + " Menang");
+    tunjuk("vTamat");
+  } else if(b && b.keputusan){
+    setTxt("kTajuk", labelJenis(b.jenis) + " — Sudut " + labelSisi(b.sisi));
+    var r = el("kRes"); r.textContent = b.keputusan === "sah" ? "✔ SAH" : "✘ TIDAK SAH";
+    r.className = "res " + (b.keputusan === "sah" ? "sah" : "tidak");
+    tunjuk("vKeputusan");
+  } else if(b){
+    setTxt("bTajuk", "Pengesahan " + labelJenis(b.jenis) + " — Sudut " + labelSisi(b.sisi));
+    var pilihan = undiBantahan[b.id];
+    document.querySelectorAll("[data-bvote]").forEach(function(x){ x.classList.toggle("sel", x.getAttribute("data-bvote") === pilihan); });
+    setTxt("bUndian", pilihan ? "Undian anda: " + (pilihan === "ya" ? "YA" : "TIDAK") + " (boleh tukar sebelum keputusan)" : "Sila undi.");
+    tunjuk("vBantahan");
+  } else {
+    tunjuk("vMarkah");
+  }
+}
+
+/* ================== WIRING ================== */
+document.querySelectorAll("[data-undi]").forEach(function(b){
+  b.addEventListener("pointerdown", function(e){ e.preventDefault(); var p = b.getAttribute("data-undi").split("|"); undi(p[0], p[1], b); });
+});
+document.querySelectorAll("[data-bvote]").forEach(function(b){ b.addEventListener("click", function(){ undiBantah(b.getAttribute("data-bvote")); }); });
+document.querySelectorAll("[data-pilih]").forEach(function(b){
+  b.addEventListener("click", function(){ location.search = "?j=" + b.getAttribute("data-pilih"); });
+});
+el("btnAmbil").addEventListener("click", function(){ SESI = genId(); ambilKerusi(); });
+
+/* skrin sentiasa hidup */
+var wakeLock = null;
+function kunciSkrin(){ try{ if(navigator.wakeLock){ navigator.wakeLock.request("screen").then(function(w){ wakeLock = w; }).catch(function(){}); } }catch(e){} }
+document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible"){ kunciSkrin(); heartbeat(); } });
+
+/* ================== MULA ================== */
+function mula(){
+  render();
+  if(!JURI_ID){ return; }
+  kunciSkrin();
+  syncClock().then(ambilKerusi).then(function(){
+    fbListen("/kerusi/" + JURI_ID, onKerusi, setConn);
+    fbListen("/state", function(d){ state = d; render(); }, setConn);
+  });
+  hbTimer = setInterval(heartbeat, 10000);
+  setInterval(syncClock, 60000);
+}
+mula();
+</script>
+</body>
+</html>

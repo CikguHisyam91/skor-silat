@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Papan Skor — Silat Tanding</title>
+<style>
+  :root{
+    --bg:#04060b;--line:#1f2c40;--ink:#eaf0f8;--muted:#8595ad;--gold:#f1c232;--gold-dim:#5d4a14;
+    --merah:#e2333f;--merah-glow:#ff5662;--biru:#2f6bff;--biru-glow:#5d93ff;--ok:#21c779;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden}
+  body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;cursor:default}
+  .num{font-variant-numeric:tabular-nums}
+  .tv{height:100vh;display:grid;grid-template-rows:auto 1fr auto;position:relative}
+  .tv-top{display:flex;align-items:center;justify-content:space-between;padding:1.4vh 2.5vw;background:linear-gradient(180deg,#0c1322,#070b13);border-bottom:1px solid var(--line)}
+  .tv-top .t{font-size:2vh;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .tv-top .t span{color:var(--gold)}
+  .tv-body{display:grid;grid-template-columns:1fr auto 1fr;min-height:0}
+  .side{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2vh 2vw;overflow:hidden}
+  .side::before{content:"";position:absolute;top:0;left:0;right:0;height:1vh}
+  .side.merah{background:linear-gradient(180deg,rgba(226,51,63,.6) 0%,rgba(150,28,36,.3) 42%,rgba(18,5,7,.97) 100%)}
+  .side.biru{background:linear-gradient(180deg,rgba(47,107,255,.6) 0%,rgba(28,64,170,.3) 42%,rgba(6,9,24,.97) 100%)}
+  .side.merah::before{background:linear-gradient(90deg,transparent,var(--merah-glow),transparent)}
+  .side.biru::before{background:linear-gradient(90deg,transparent,var(--biru-glow),transparent)}
+  .label{font-size:3.4vh;font-weight:900;letter-spacing:.34em;text-transform:uppercase;color:#fff}
+  .side.merah .label{text-shadow:0 0 2.5vh var(--merah-glow)}.side.biru .label{text-shadow:0 0 2.5vh var(--biru-glow)}
+  .chip{display:inline-block;padding:.9vh 2.2vw;border-radius:999px;font-weight:800;font-size:3.4vh;margin-top:1.6vh;max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .side.merah .chip{background:rgba(226,51,63,.3);color:#ffe1e3;border:1px solid rgba(255,86,98,.6)}
+  .side.biru .chip{background:rgba(47,107,255,.3);color:#dde8ff;border:1px solid rgba(93,147,255,.6)}
+  .score{font-size:32vh;font-weight:900;line-height:.9;margin-top:2vh;color:#fff}
+  .side.merah .score{text-shadow:0 0 6vh rgba(255,86,98,.8)}.side.biru .score{text-shadow:0 0 6vh rgba(93,147,255,.8)}
+  .mid{background:#04060b;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2vh 2.5vw;border-left:1px solid var(--gold-dim);border-right:1px solid var(--gold-dim);min-width:22vw}
+  .round{font-size:2.6vh;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .timer{font-size:14vh;font-weight:900;margin:1.5vh 0;line-height:1}
+  .timer.run{color:var(--gold)}
+  .timer.end{color:var(--merah-glow);animation:blink 1s infinite}
+  .dots{display:flex;gap:1vw}
+  .dots i{width:1.6vh;height:1.6vh;border-radius:50%;background:#23304a;display:block}
+  .dots i.on{background:var(--gold);box-shadow:0 0 1.2vh var(--gold)}
+  .foot{padding:1.2vh;text-align:center;font-size:1.6vh;letter-spacing:.26em;text-transform:uppercase;color:#54627b;background:#070b13;border-top:1px solid var(--line)}
+  @keyframes blink{50%{opacity:.35}}
+  @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.15)}100%{transform:scale(1)}}
+  .pop{animation:pop .5s ease}
+  @keyframes glowM{30%{box-shadow:inset 0 0 12vh rgba(255,86,98,.7)}}
+  @keyframes glowB{30%{box-shadow:inset 0 0 12vh rgba(93,147,255,.7)}}
+  .glowM{animation:glowM .8s ease}.glowB{animation:glowB .8s ease}
+  @keyframes notisIn{0%{opacity:0;transform:translate(-50%,-2vh)}100%{opacity:1;transform:translate(-50%,0)}}
+  .penalti{position:absolute;top:3vh;left:50%;transform:translateX(-50%);padding:1.4vh 2.4vw;border-radius:1.4vh;font-weight:900;font-size:3.4vh;color:#fff;white-space:nowrap;display:none;z-index:4}
+  .penalti.show{display:block;animation:notisIn .3s ease}
+  .side.merah .penalti{background:rgba(226,51,63,.96);box-shadow:0 1vh 4vh rgba(226,51,63,.6)}
+  .side.biru .penalti{background:rgba(47,107,255,.96);box-shadow:0 1vh 4vh rgba(47,107,255,.6)}
+  .crown{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(4,6,11,.8);z-index:5}
+  .crown.show{display:flex}
+  .crown .c{font-size:14vh}
+  .crown .w{font-size:6vh;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-top:1vh}
+  .crown.merah .w{color:var(--merah-glow)}.crown.biru .w{color:var(--biru-glow)}
+  .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;background:rgba(4,6,11,.88);backdrop-filter:blur(4px);z-index:8;padding:4vh}
+  .overlay.show{display:flex}
+  .o-eye{font-size:3vh;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:800}
+  .o-title{font-size:7vh;font-weight:900;margin:2.5vh 0;line-height:1.2}
+  .o-sub{color:var(--muted);font-size:3.2vh}
+  .o-votes{display:flex;gap:5vw;margin-top:3vh;font-size:4.5vh;font-weight:900}
+  .o-votes .ya{color:var(--ok)}.o-votes .tidak{color:var(--merah-glow)}
+  .o-res{font-size:14vh;font-weight:900}
+  .o-res.sah{color:var(--ok)}.o-res.tidak{color:var(--merah-glow)}
+  .start{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2vh;background:rgba(4,6,11,.92)}
+  .start button{border:none;background:var(--gold);color:#0a0e15;border-radius:2vh;padding:2.5vh 5vw;font-size:3.4vh;font-weight:900;cursor:pointer}
+  .start p{color:var(--muted);font-size:2.2vh;margin:0}
+  .conn{position:fixed;right:1vw;bottom:1vh;width:1.4vh;height:1.4vh;border-radius:50%;background:#5a343a;z-index:9}
+  .conn.on{background:var(--ok);box-shadow:0 0 1vh var(--ok)}
+</style>
+</head>
+<body>
+<div class="tv">
+  <div class="tv-top"><div class="t">Silat <span>Tanding</span> — Kejohanan</div><div class="t" id="topInfo">Perlawanan -</div></div>
+  <div class="tv-body">
+    <div class="side merah" id="sideM">
+      <div class="penalti" id="penM"></div>
+      <div class="crown merah" id="crownM"><div class="c">👑</div><div class="w">Merah Menang</div></div>
+      <div class="label">Merah</div><div class="chip" id="nmM">Pesilat Merah</div><div class="score num" id="skM">0</div>
+    </div>
+    <div class="mid">
+      <div class="round" id="round">Babak 1</div>
+      <div class="timer num" id="timer">2:00</div>
+      <div class="dots" id="dots"></div>
+    </div>
+    <div class="side biru" id="sideB">
+      <div class="penalti" id="penB"></div>
+      <div class="crown biru" id="crownB"><div class="c">👑</div><div class="w">Biru Menang</div></div>
+      <div class="label">Biru</div><div class="chip" id="nmB">Pesilat Biru</div><div class="score num" id="skB">0</div>
+    </div>
+  </div>
+  <div class="foot">Sri Gayong Panglima Ulung &nbsp;•&nbsp; Sistem Skor Silat Tanding</div>
+  <div class="overlay" id="overlay"></div>
+</div>
+<div class="start" id="start"><button id="btnStart">📺 Mula Paparan Skrin Penuh</button><p>Klik sekali untuk skrin penuh dan bunyi.</p></div>
+<div class="conn" id="conn"></div>
+
+<script>
+"use strict";
+var DB_URL = "https://skor-silatolahraga-default-rtdb.asia-southeast1.firebasedatabase.app";
+var ROOT = "/silat";
+
+function fbUrl(p){ return DB_URL + ROOT + p + ".json"; }
+function setPath(obj, path, val){
+  var parts = path.split("/").filter(function(x){ return x.length > 0; });
+  if(parts.length === 0){ return val; }
+  if(obj === null || typeof obj !== "object"){ obj = {}; }
+  var cur = obj;
+  for(var i = 0; i < parts.length - 1; i++){
+    if(cur[parts[i]] === null || typeof cur[parts[i]] !== "object"){ cur[parts[i]] = {}; }
+    cur = cur[parts[i]];
+  }
+  var last = parts[parts.length - 1];
+  if(val === null){ delete cur[last]; } else { cur[last] = val; }
+  return obj;
+}
+function fbListen(p, onData, onStatus){
+  var cache = null;
+  var es = new EventSource(fbUrl(p));
+  es.addEventListener("put", function(e){ var m = JSON.parse(e.data); cache = setPath(cache, m.path, m.data); onData(cache); onStatus(true); });
+  es.addEventListener("patch", function(e){
+    var m = JSON.parse(e.data); var d = m.data || {};
+    Object.keys(d).forEach(function(k){ cache = setPath(cache, (m.path === "/" ? "" : m.path) + "/" + k, d[k]); });
+    onData(cache); onStatus(true);
+  });
+  es.addEventListener("keep-alive", function(){ onStatus(true); });
+  es.onopen = function(){ onStatus(true); };
+  es.onerror = function(){ onStatus(false); };
+  return es;
+}
+
+function el(id){ return document.getElementById(id); }
+function setTxt(id, v){ var n = el(id); if(n){ n.textContent = v; } }
+function fmtMasa(s){ s = s || 0; var m = Math.floor(s / 60), ss = s % 60; return m + ":" + (ss < 10 ? "0" : "") + ss; }
+function labelJenis(j){ return j === "pelanggaran" ? "Pelanggaran" : "Jatuhan"; }
+function labelSisi(s){ return s === "merah" ? "Merah" : "Biru"; }
+function ulangAnim(node, cls){ node.classList.remove(cls); void node.offsetWidth; node.classList.add(cls); }
+
+var audioCtx = null;
+function beep(freq, dur){
+  try{
+    if(!audioCtx){ return; }
+    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = "square"; o.frequency.value = freq; g.gain.value = 0.06;
+    o.connect(g); g.connect(audioCtx.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+    o.stop(audioCtx.currentTime + dur);
+  }catch(e){}
+}
+
+var lama = null;
+var notisTimer = null;
+function render(s){
+  if(!s){ return; }
+  var p = lama || {};
+  setTxt("nmM", s.namaMerah || "Pesilat Merah");
+  setTxt("nmB", s.namaBiru || "Pesilat Biru");
+  setTxt("skM", s.skorMerah || 0);
+  setTxt("skB", s.skorBiru || 0);
+  setTxt("topInfo", "Perlawanan " + (s.noPerlawanan || "-") + "  •  Babak " + (s.babak || 1) + "/" + (s.jumlahBabak || 3));
+  setTxt("round", "Babak " + (s.babak || 1));
+  var t = el("timer"); t.textContent = fmtMasa(s.masaBaki);
+  t.classList.toggle("run", !!s.masaJalan); t.classList.toggle("end", !!s.masaTamat);
+  var h = ""; for(var i = 1; i <= (s.jumlahBabak || 3); i++){ h += "<i class=\"" + (i <= (s.babak || 1) ? "on" : "") + "\"></i>"; }
+  el("dots").innerHTML = h;
+
+  if(lama){
+    if((s.skorMerah || 0) > (p.skorMerah || 0)){ ulangAnim(el("skM"), "pop"); ulangAnim(el("sideM"), "glowM"); beep(880, 0.12); }
+    if((s.skorBiru || 0) > (p.skorBiru || 0)){ ulangAnim(el("skB"), "pop"); ulangAnim(el("sideB"), "glowB"); beep(880, 0.12); }
+    if(s.masaTamat && !p.masaTamat){ beep(440, 0.8); }
+  }
+  /* popup pelanggaran */
+  var n = s.tvNotis;
+  if(n && n.id && (!p.tvNotis || p.tvNotis.id !== n.id) && lama){
+    var pm = el("penM"), pb = el("penB");
+    pm.className = "penalti"; pb.className = "penalti";
+    var sasaran = n.sisi === "merah" ? pm : pb;
+    sasaran.textContent = "⚠ " + n.teks;
+    sasaran.className = "penalti show";
+    beep(300, 0.2);
+    clearTimeout(notisTimer);
+    notisTimer = setTimeout(function(){ pm.className = "penalti"; pb.className = "penalti"; }, 4500);
+  }
+  /* pemenang */
+  el("crownM").classList.toggle("show", s.pemenang === "merah");
+  el("crownB").classList.toggle("show", s.pemenang === "biru");
+  /* bantahan */
+  var ov = el("overlay"), b = s.bantahan;
+  if(!b){ ov.classList.remove("show"); ov.innerHTML = ""; }
+  else {
+    var u = b.undian || {}, ya = 0, tidak = 0;
+    ["j1","j2","j3"].forEach(function(j){ if(u[j] === "ya"){ ya++; } if(u[j] === "tidak"){ tidak++; } });
+    if(b.keputusan){
+      ov.innerHTML = "<div class=\"o-eye\">Keputusan Pengesahan</div><div class=\"o-title\">" + labelJenis(b.jenis) + " — Sudut " + labelSisi(b.sisi) + "</div><div class=\"o-res " + (b.keputusan === "sah" ? "sah" : "tidak") + "\">" + (b.keputusan === "sah" ? "✔ SAH" : "✘ TIDAK SAH") + "</div>";
+      if(!p.bantahan || !p.bantahan.keputusan){ beep(b.keputusan === "sah" ? 880 : 300, 0.3); }
+    } else {
+      ov.innerHTML = "<div class=\"o-eye\">Bantahan Jurulatih</div><div class=\"o-title\">Pengesahan " + labelJenis(b.jenis) + "<br>Sudut " + labelSisi(b.sisi) + "</div><div class=\"o-sub\">Menunggu undian juri…</div><div class=\"o-votes\"><span class=\"ya\">✔ YA: " + ya + "</span><span class=\"tidak\">✘ TIDAK: " + tidak + "</span></div>";
+    }
+    ov.classList.add("show");
+  }
+  lama = JSON.parse(JSON.stringify(s));
+}
+
+var connOn = null;
+function setConn(on){ if(on === connOn){ return; } connOn = on; el("conn").classList.toggle("on", on); }
+
+el("btnStart").addEventListener("click", function(){
+  try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
+  var d = document.documentElement;
+  if(d.requestFullscreen){ d.requestFullscreen().catch(function(){}); }
+  el("start").style.display = "none";
+});
+document.addEventListener("dblclick", function(){
+  var d = document.documentElement;
+  if(!document.fullscreenElement && d.requestFullscreen){ d.requestFullscreen().catch(function(){}); }
+});
+
+fbListen("/state", render, setConn);
+</script>
+</body>
+</html>
