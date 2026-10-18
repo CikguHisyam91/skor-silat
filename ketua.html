@@ -189,6 +189,8 @@
         <div class="seg" id="segJumlah"><button data-jum="1">1</button><button data-jum="2">2</button><button data-jum="3">3</button></div>
         <div class="mini-label">Babak semasa</div>
         <div class="seg" id="segBabak"><button data-bab="1">B1</button><button data-bab="2">B2</button><button data-bab="3">B3</button></div>
+        <div class="mini-label">Mod skor juri</div>
+        <div class="seg" id="segMod"><button data-mod="23">2/3 Juri Sama</button><button data-mod="terus">Terus Masuk (1 Fon)</button></div>
         <div class="mini-label">Undi juri menunggu</div>
         <div class="lampu-set" id="lampuKetua"></div>
         <div class="act-row"><button class="btn-resetM" id="btnResetMarkah">↺ Reset Markah</button><button class="btn-baru" id="btnBaru">🆕 Perlawanan Baharu</button></div>
@@ -328,7 +330,7 @@ function beep(freq, dur){
 function stateBaru(no){
   return { pid:genId(), noPerlawanan:no || "1", namaMerah:"Pesilat Merah", namaBiru:"Pesilat Biru",
     skorMerah:0, skorBiru:0, babak:1, jumlahBabak:3, masaSet:120, masaBaki:120,
-    masaJalan:false, masaTamat:false, pemenang:null, bantahan:null, tvNotis:null, flash:null };
+    masaJalan:false, masaTamat:false, pemenang:null, bantahan:null, modSkor:"23", tvNotis:null, flash:null };
 }
 var state = stateBaru();
 var logList = [];
@@ -383,6 +385,11 @@ function terimaUndi(id, v){
   if(lm && Math.abs(v.t - lm.t) <= WINDOW_MS && lm.juri.indexOf(v.juri) === -1){
     lm.juri.push(v.juri); buangUndi(id); return;
   }
+  if(state.modSkor === "terus"){
+    buangUndi(id);
+    beriMata(v.sisi, v.poin, v.juri.toUpperCase() + ", terus");
+    return;
+  }
   pending[id] = v;
   cubaPadan(key);
 }
@@ -408,12 +415,20 @@ function sahkanPadanan(ida, idb, key){
   });
   buangUndi(ida); buangUndi(idb);
   lastMatch[key] = { t:anchor, juri:juriList };
-  var nilai = va.poin === "tangan" ? 1 : 2;
-  if(va.sisi === "merah"){ state.skorMerah += nilai; } else { state.skorBiru += nilai; }
-  state.flash = { id:genId(), sisi:va.sisi };
-  var nama = juriList.map(function(j){ return j.toUpperCase(); }).join(", ");
-  tambahLog("✅ <b>" + va.sisi.toUpperCase() + " +" + nilai + "</b> — " + (va.poin === "tangan" ? "Tangan" : "Kaki") + " disahkan (" + nama + ")");
-  beep(880, 0.12); kesanPop(va.sisi); renderSemua(); simpanState();
+  beriMata(va.sisi, va.poin, juriList.map(function(j){ return j.toUpperCase(); }).join(", "));
+}
+function beriMata(sisi, poin, nama){
+  var nilai = poin === "tangan" ? 1 : 2;
+  if(sisi === "merah"){ state.skorMerah += nilai; } else { state.skorBiru += nilai; }
+  state.flash = { id:genId(), sisi:sisi };
+  tambahLog("✅ <b>" + sisi.toUpperCase() + " +" + nilai + "</b> — " + (poin === "tangan" ? "Tangan" : "Kaki") + " disahkan (" + nama + ")");
+  beep(880, 0.12); kesanPop(sisi); renderSemua(); simpanState();
+}
+function setMod(m){
+  state.modSkor = m;
+  pending = {}; lastMatch = {};
+  toast(m === "terus" ? "Mod: Poin terus masuk (tanpa 2/3)" : "Mod: 2/3 juri tekan sama");
+  renderSemua(); simpanState();
 }
 
 /* ================== TINDAKAN KETUA ================== */
@@ -511,22 +526,24 @@ function setJumlahBabak(j){ state.jumlahBabak = j; if(state.babak > j){ state.ba
 
 /* ================== RESET ================== */
 function resetMarkah(){
-  if(!confirm("Reset markah kedua-dua sudut kepada 0?")){ return; }
+  if(!confirm("Reset markah kedua-dua sudut kepada 0? Log juga akan dikosongkan.")){ return; }
   state.skorMerah = 0; state.skorBiru = 0; state.pemenang = null;
-  tambahLog("↺ Markah di-reset (babak & masa kekal)"); renderSemua(); simpanState();
+  pending = {}; lastMatch = {};
+  fbReq("DELETE", "/votes").catch(function(){});
+  logList = []; renderLog(); simpanLog();
+  renderSemua(); simpanState();
 }
 function perlawananBaharu(){
   if(!confirm("Mula perlawanan baharu? Markah, babak dan masa akan di-reset.")){ return; }
   hentiMasa(true);
   var noLama = parseInt(state.noPerlawanan, 10);
   var s = stateBaru(isNaN(noLama) ? "1" : String(noLama + 1));
-  s.masaSet = state.masaSet; s.masaBaki = state.masaSet; s.jumlahBabak = state.jumlahBabak;
+  s.masaSet = state.masaSet; s.masaBaki = state.masaSet; s.jumlahBabak = state.jumlahBabak; s.modSkor = state.modSkor;
   state = s;
   pending = {}; lastMatch = {};
   fbReq("DELETE", "/votes").catch(function(){});
   fbReq("DELETE", "/bantahanUndi").catch(function(){});
-  logList = [];
-  tambahLog("🆕 Perlawanan " + state.noPerlawanan + " dimulakan");
+  logList = []; renderLog(); simpanLog();
   renderSemua(); simpanState();
   bukaPerlawanan();
 }
@@ -568,6 +585,7 @@ function renderBabak(){
   el("kDots").innerHTML = h;
   markSeg("segJumlah", "data-jum", state.jumlahBabak); markSeg("segBabak", "data-bab", state.babak);
   markSeg("segMasa", "data-masa", state.masaSet / 60);
+  el("segMod").querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-mod") === (state.modSkor || "23")); });
 }
 function markSeg(id, attr, val){ el(id).querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", parseFloat(b.getAttribute(attr)) === val); }); }
 function renderLog(){
@@ -635,6 +653,7 @@ function wire(){
   el("btnBaru").addEventListener("click", perlawananBaharu);
   el("segMasa").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ setMasaMinit(parseFloat(b.getAttribute("data-masa"))); }); });
   el("segJumlah").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ setJumlahBabak(parseInt(b.getAttribute("data-jum"), 10)); }); });
+  el("segMod").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ setMod(b.getAttribute("data-mod")); }); });
   el("segBabak").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ pilihBabak(parseInt(b.getAttribute("data-bab"), 10)); }); });
   el("btnPerlawanan").addEventListener("click", bukaPerlawanan);
   el("mSimpanPerlawanan").addEventListener("click", simpanPerlawanan);
@@ -672,7 +691,7 @@ function mula(){
       state = d;
     }
     if(Array.isArray(lg)){ logList = lg.filter(function(x){ return x; }); }
-    else { tambahLog("🟢 Sistem Ketua dihidupkan"); }
+
     renderSemua(); renderLog(); simpanState();
     setConn(true);
     var kerusiSedia = false;
