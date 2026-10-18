@@ -41,6 +41,12 @@
   .dots{display:flex;gap:1vw}
   .dots i{width:1.6vh;height:1.6vh;border-radius:50%;background:#23304a;display:block}
   .dots i.on{background:var(--gold);box-shadow:0 0 1.2vh var(--gold)}
+  .ticker{display:none;align-items:stretch;background:#120d02;border-top:2px solid var(--gold);height:5.2vh;overflow:hidden}
+  .ticker.show{display:flex}
+  .tk-lbl{background:var(--gold);color:#0a0e15;font-weight:900;font-size:2.2vh;letter-spacing:.2em;display:flex;align-items:center;padding:0 2vw;white-space:nowrap}
+  .tk-win{flex:1;overflow:hidden;position:relative;display:flex;align-items:center}
+  .tk-run{position:absolute;white-space:nowrap;font-size:2.6vh;font-weight:800;color:#ffe9a8;letter-spacing:.05em;padding-left:100%;animation:tkGerak var(--tk-dur,30s) linear infinite}
+  @keyframes tkGerak{from{transform:translateX(0)}to{transform:translateX(-100%)}}
   .foot{padding:1.2vh;text-align:center;font-size:1.6vh;letter-spacing:.26em;text-transform:uppercase;color:#54627b;background:#070b13;border-top:1px solid var(--line)}
   @keyframes blink{50%{opacity:.35}}
   @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.15)}100%{transform:scale(1)}}
@@ -95,7 +101,8 @@
       <div class="label">Biru</div><div class="chip" id="nmB">Pesilat Biru</div><div class="pas" id="pasB"></div><div class="score num" id="skB">0</div>
     </div>
   </div>
-  <div class="foot">Sri Gayong Panglima Ulung &nbsp;•&nbsp; Sistem Skor Silat Tanding</div>
+  <div class="ticker" id="ticker"><div class="tk-lbl">SETERUSNYA</div><div class="tk-win"><div class="tk-run" id="tkRun"></div></div></div>
+  <div class="foot" id="footTv">Sri Gayong Panglima Ulung &nbsp;•&nbsp; Sistem Skor Silat Tanding</div>
   <div class="overlay" id="overlay"></div>
 </div>
 <div class="start" id="start"><button id="btnStart">📺 Mula Paparan Skrin Penuh</button><p>Klik sekali untuk skrin penuh dan bunyi.</p></div>
@@ -170,6 +177,12 @@ function render(s){
   var p = lama || {};
   setTxt("nmM", s.namaMerah || "Pesilat Merah");
   setTxt("nmB", s.namaBiru || "Pesilat Biru");
+  var tk = s.ticker || "";
+  if(tk !== (p.ticker || "") || !lama){
+    var run = el("tkRun"); run.textContent = tk ? tk + "          " + tk : "";
+    run.style.setProperty("--tk-dur", Math.max(20, Math.round(tk.length * 0.35)) + "s");
+    el("ticker").classList.toggle("show", !!tk); el("footTv").style.display = tk ? "none" : "";
+  }
   setTxt("pasM", s.pasukanMerah || ""); setTxt("pasB", s.pasukanBiru || "");
   setTxt("kat", [s.kategori, s.kelas].filter(function(x){ return x; }).join(" • "));
   setTxt("skM", s.skorMerah || 0);

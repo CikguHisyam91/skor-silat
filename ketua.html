@@ -393,7 +393,7 @@ function makeWriter(path, getter){
   }
   return run;
 }
-var simpanState = makeWriter("/state", function(){ return state; });
+var simpanState = makeWriter("/state", function(){ state.ticker = teksTicker(); return state; });
 var simpanLog = makeWriter("/log", function(){ return logList; });
 
 function tambahLog(teks){
@@ -637,6 +637,14 @@ function renderPratonton(){
   el("jdPratonton").innerHTML = "<div class=\"tg-st\">" + senarai.length + " perlawanan</div><table class=\"jd-tbl\"><tr><th>No</th><th>Kategori</th><th>Kelas</th><th>🔴 Merah</th><th>🔵 Biru</th></tr>" +
     senarai.map(function(j){ return "<tr" + (String(j.no) === String(kini) ? " class=\"kini\"" : "") + "><td>" + escHtml(j.no) + "</td><td>" + escHtml(j.kategori) + "</td><td>" + escHtml(j.kelas) + "</td><td>" + escHtml(j.merah) + "<br><small>" + escHtml(j.pasMerah) + "</small></td><td>" + escHtml(j.biru) + "<br><small>" + escHtml(j.pasBiru) + "</small></td></tr>"; }).join("") + "</table>";
 }
+function teksTicker(){
+  var idx = cariIdxJadual(state.noPerlawanan), lepas = idx >= 0 ? jadual.slice(idx + 1, idx + 3) : [];
+  if(!lepas.length){ return ""; }
+  return "📢 MOHON BERSEDIA  ▸  " + lepas.map(function(j){
+    var kat = [j.kategori, j.kelas].filter(function(x){ return x; }).join(" • ");
+    return "PERLAWANAN " + j.no + (kat ? " [" + kat + "]" : "") + ":  🔴 " + j.merah + (j.pasMerah ? " (" + j.pasMerah + ")" : "") + "  vs  🔵 " + j.biru + (j.pasBiru ? " (" + j.pasBiru + ")" : "");
+  }).join("     ◆     ");
+}
 function bukaJadual(){
   el("jdTeks").value = teksJadual(); renderPratonton();
   var t = bacaLS("tg", {}); el("tgToken").value = t.token || ""; el("tgChat").value = t.chat || ""; el("tgAktif").checked = !!t.aktif;
@@ -647,7 +655,7 @@ function simpanJadual(){
   jadual = parseJadual(el("jdTeks").value);
   tulisLS("jadual", jadual);
   fbReq("PUT", "/jadual", jadual).catch(function(){});
-  renderPratonton(); toast("💾 Jadual disimpan (" + jadual.length + " perlawanan)");
+  simpanState(); renderPratonton(); toast("💾 Jadual disimpan (" + jadual.length + " perlawanan)");
 }
 function muatPertama(){
   simpanJadual();
@@ -678,7 +686,7 @@ function tgHantar(teks, paksa){
   }).catch(function(){ toast("⚠ Gagal hantar ke Telegram. Semak internet."); return null; });
 }
 function tgMakluman(){
-  var m = "🥋 <b>PERLAWANAN " + tgEsc(state.noPerlawanan) + " BERMULA</b>\n" + tgKat(state.kategori, state.kelas) +
+  var m = "🥋 <b>PERLAWANAN " + tgEsc(state.noPerlawanan) + " SEDANG BERLANGSUNG</b>\n" + tgKat(state.kategori, state.kelas) +
     "🔴 " + tgPesilat(state.namaMerah, state.pasukanMerah) + "\n🆚\n🔵 " + tgPesilat(state.namaBiru, state.pasukanBiru);
   var idx = cariIdxJadual(state.noPerlawanan), lepas = idx >= 0 ? jadual.slice(idx + 1, idx + 3) : [];
   if(lepas.length){
