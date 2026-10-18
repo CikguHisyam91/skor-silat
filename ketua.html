@@ -166,6 +166,7 @@
       <button id="btnPerlawanan">📝 Perlawanan</button>
       <button id="btnBantahan">⚖️ Bantahan / Pengesahan</button>
       <button id="btnTambah">➕ Tambah Markah</button>
+      <button id="btnResetSemua" style="background:#3a0d12;border-color:#e2333f;color:#ff9aa3">🔄 RESET SEMUA</button>
       <div class="tb-status" id="bantahanStatus">Tiada bantahan aktif.</div>
       <button id="btnBatalBantahan" style="display:none">✖ Batal</button>
       <button id="btnSelesaiBantahan" style="display:none">✓ Selesai</button>
@@ -533,6 +534,20 @@ function resetMarkah(){
   logList = []; renderLog(); simpanLog();
   renderSemua(); simpanState();
 }
+function resetSemua(){
+  if(!confirm("RESET SEMUA? Markah, masa, babak, pemenang, bantahan dan log akan dikosongkan. Nama & no. perlawanan kekal.")){ return; }
+  hentiMasa(true);
+  var s = stateBaru(state.noPerlawanan);
+  s.namaMerah = state.namaMerah; s.namaBiru = state.namaBiru;
+  s.masaSet = state.masaSet; s.masaBaki = state.masaSet; s.jumlahBabak = state.jumlahBabak; s.modSkor = state.modSkor;
+  state = s;
+  pending = {}; lastMatch = {};
+  fbReq("DELETE", "/votes").catch(function(){});
+  fbReq("DELETE", "/bantahanUndi").catch(function(){});
+  logList = []; renderLog(); simpanLog();
+  renderSemua(); simpanState();
+  toast("🔄 Semua telah di-reset");
+}
 function perlawananBaharu(){
   if(!confirm("Mula perlawanan baharu? Markah, babak dan masa akan di-reset.")){ return; }
   hentiMasa(true);
@@ -651,6 +666,7 @@ function wire(){
   el("btnReset").addEventListener("click", resetMasa);
   el("btnResetMarkah").addEventListener("click", resetMarkah);
   el("btnBaru").addEventListener("click", perlawananBaharu);
+  el("btnResetSemua").addEventListener("click", resetSemua);
   el("segMasa").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ setMasaMinit(parseFloat(b.getAttribute("data-masa"))); }); });
   el("segJumlah").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ setJumlahBabak(parseInt(b.getAttribute("data-jum"), 10)); }); });
   el("segMod").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ setMod(b.getAttribute("data-mod")); }); });
