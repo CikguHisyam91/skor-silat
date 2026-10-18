@@ -148,17 +148,26 @@ function setPath(obj, path, val){
   return obj;
 }
 function fbListen(p, onData, onStatus){
-  var cache = null;
-  var es = new EventSource(fbUrl(p));
-  es.addEventListener("put", function(e){ var m = JSON.parse(e.data); cache = setPath(cache, m.path, m.data); onData(cache); onStatus(true); });
-  es.addEventListener("patch", function(e){
-    var m = JSON.parse(e.data); var d = m.data || {};
-    Object.keys(d).forEach(function(k){ cache = setPath(cache, (m.path === "/" ? "" : m.path) + "/" + k, d[k]); });
-    onData(cache); onStatus(true);
-  });
-  es.addEventListener("keep-alive", function(){ onStatus(true); });
-  es.onopen = function(){ onStatus(true); };
-  es.onerror = function(){ onStatus(false); };
+  var cache = null, es = null, akhir = Date.now();
+  function buka(){
+    if(es){ try{ es.close(); }catch(e){} }
+    es = new EventSource(fbUrl(p));
+    es.addEventListener("put", function(e){ akhir = Date.now(); var m = JSON.parse(e.data); cache = setPath(cache, m.path, m.data); onData(cache); onStatus(true); });
+    es.addEventListener("patch", function(e){
+      akhir = Date.now();
+      var m = JSON.parse(e.data); var d = m.data || {};
+      Object.keys(d).forEach(function(k){ cache = setPath(cache, (m.path === "/" ? "" : m.path) + "/" + k, d[k]); });
+      onData(cache); onStatus(true);
+    });
+    es.addEventListener("keep-alive", function(){ akhir = Date.now(); onStatus(true); });
+    es.onopen = function(){ akhir = Date.now(); onStatus(true); };
+    es.onerror = function(){ onStatus(false); };
+  }
+  buka();
+  /* sambung semula automatik jika talian putus atau senyap terlalu lama */
+  setInterval(function(){
+    if(es.readyState === 2 || Date.now() - akhir > 45000){ akhir = Date.now(); buka(); }
+  }, 5000);
   return es;
 }
 
