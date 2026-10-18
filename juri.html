@@ -276,8 +276,8 @@ function render(){
   if(diambil){ tunjuk("vDiambil"); return; }
   if(!state){ tunjuk("vMarkah"); setTxt("info", "Menyambung…"); return; }
   el("info").innerHTML = "Perlawanan <b>" + (state.noPerlawanan || "-") + "</b> • Babak <b>" + (state.babak || 1) + "</b>";
-  setTxt("nmMerah", state.namaMerah || "");
-  setTxt("nmBiru", state.namaBiru || "");
+  setTxt("nmMerah", (state.namaMerah || "") + (state.pasukanMerah ? " (" + state.pasukanMerah + ")" : ""));
+  setTxt("nmBiru", (state.namaBiru || "") + (state.pasukanBiru ? " (" + state.pasukanBiru + ")" : ""));
   var b = state.bantahan;
   if(state.pemenang){
     setTxt("tPemenang", "🏆 Sudut " + labelSisi(state.pemenang) + " Menang");

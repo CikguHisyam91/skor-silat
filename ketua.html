@@ -126,6 +126,15 @@
   .tambah-row.biru button{background:#0e1a33;border-color:#20345a;color:#bcd2ff}
   .inp{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--ink);font-size:15px;font-weight:700}
   .inp.m{border-color:#5a2a30}.inp.b{border-color:#243a66}
+  .modal-box.lebar{max-width:820px;max-height:92vh;overflow:auto}
+  .inp2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  textarea.inp{font-family:Consolas,monospace;font-size:13px;font-weight:600;min-height:200px;resize:vertical}
+  .jd-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  .jd-tbl th,.jd-tbl td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left}
+  .jd-tbl th{color:var(--muted);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+  .jd-tbl tr.kini td{background:#2a2416;color:var(--gold)}
+  .jd-btn{background:var(--bg2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}
+  .tg-st{font-size:12px;color:var(--muted);margin-top:8px}
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#3a2326;border:1px solid #5a343a;color:#ffd0d4;padding:10px 16px;border-radius:10px;font-weight:700;font-size:13px;display:none;z-index:200}
   .toast.show{display:block}
 
@@ -166,6 +175,7 @@
       <button id="btnPerlawanan">📝 Perlawanan</button>
       <button id="btnBantahan">⚖️ Bantahan / Pengesahan</button>
       <button id="btnTambah">➕ Tambah Markah</button>
+      <button id="btnJadual">📋 Jadual &amp; Telegram</button>
       <button id="btnResetSemua" style="background:#3a0d12;border-color:#e2333f;color:#ff9aa3">🔄 RESET SEMUA</button>
       <div class="tb-status" id="bantahanStatus">Tiada bantahan aktif.</div>
       <button id="btnBatalBantahan" style="display:none">✖ Batal</button>
@@ -214,12 +224,18 @@
 <div class="modal" id="modalPerlawanan"><div class="modal-box">
   <div class="modal-head"><div class="modal-title">📝 Maklumat Perlawanan</div><button class="modal-x" data-close="modalPerlawanan">✕</button></div>
   <div class="modal-desc">Nama akan dipaparkan di TV dan fon juri.</div>
-  <div class="modal-label">No. Perlawanan</div>
-  <input class="inp" id="inpNo" maxlength="10">
-  <div class="modal-label" style="color:var(--merah-glow)">Nama Pesilat Merah</div>
-  <input class="inp m" id="inpMerah" maxlength="40">
-  <div class="modal-label" style="color:var(--biru-glow)">Nama Pesilat Biru</div>
-  <input class="inp b" id="inpBiru" maxlength="40">
+  <div class="modal-label">Pilih dari jadual</div>
+  <select class="inp" id="inpPilihJadual"></select>
+  <div class="inp2">
+    <div><div class="modal-label">No. Perlawanan</div><input class="inp" id="inpNo" maxlength="10"></div>
+    <div><div class="modal-label">Kategori</div><input class="inp" id="inpKategori" maxlength="40" placeholder="cth. Remaja Putera"></div>
+  </div>
+  <div class="modal-label">Kelas Berat</div>
+  <input class="inp" id="inpKelas" maxlength="30" placeholder="cth. Kelas A (45–50kg)">
+  <div class="modal-label" style="color:var(--merah-glow)">Pesilat Merah — Nama / Pasukan</div>
+  <div class="inp2"><input class="inp m" id="inpMerah" maxlength="40" placeholder="Nama"><input class="inp m" id="inpPasMerah" maxlength="40" placeholder="Pasukan"></div>
+  <div class="modal-label" style="color:var(--biru-glow)">Pesilat Biru — Nama / Pasukan</div>
+  <div class="inp2"><input class="inp b" id="inpBiru" maxlength="40" placeholder="Nama"><input class="inp b" id="inpPasBiru" maxlength="40" placeholder="Pasukan"></div>
   <div class="modal-act"><button class="m-batal" data-close="modalPerlawanan">Batal</button><button class="m-ok" id="mSimpanPerlawanan">Simpan</button></div>
 </div></div>
 
@@ -231,6 +247,24 @@
   <div class="modal-label">Sudut Terlibat</div>
   <div class="modal-seg" id="segSisi"><button data-bsisi="merah">Merah</button><button data-bsisi="biru">Biru</button></div>
   <div class="modal-act"><button class="m-batal" data-close="modalBantahan">Batal</button><button class="m-ok" id="mMohon">Mohon Pengesahan</button></div>
+</div></div>
+
+<div class="modal" id="modalJadual"><div class="modal-box lebar">
+  <div class="modal-head"><div class="modal-title">📋 Jadual Perlawanan</div><button class="modal-x" data-close="modalJadual">✕</button></div>
+  <div class="modal-desc">Satu baris = satu perlawanan. Susunan lajur:<br><b>No | Kategori | Kelas Berat | Nama Merah | Pasukan Merah | Nama Biru | Pasukan Biru</b><br>Boleh salin terus 7 lajur dari Google Sheet / Excel dan tampal di sini.</div>
+  <textarea class="inp" id="jdTeks" placeholder="1 | Remaja Putera | Kelas A | Ali | SK Kota | Abu | SK Bukit"></textarea>
+  <div class="modal-act"><button class="m-ok" id="jdSimpan">💾 Simpan Jadual</button><button class="jd-btn" id="jdMuat">▶ Muat perlawanan pertama</button></div>
+  <div id="jdPratonton"></div>
+
+  <div class="modal-label" style="margin-top:22px;color:var(--gold)">✈️ Makluman Telegram (percuma)</div>
+  <div class="modal-desc">1) Dalam Telegram cari <b>@BotFather</b> → taip <b>/newbot</b> → salin token.<br>2) Masukkan bot ke kumpulan Telegram anda, kemudian hantar apa-apa mesej dalam kumpulan itu.<br>3) Tampal token di bawah → tekan <b>Cari Chat ID</b> → <b>Uji Hantar</b>.<br>Token disimpan dalam laptop ini sahaja.</div>
+  <div class="modal-label">Token Bot</div>
+  <input class="inp" id="tgToken" placeholder="123456789:ABC...">
+  <div class="modal-label">Chat ID Kumpulan</div>
+  <div class="inp2"><input class="inp" id="tgChat" placeholder="-100..."><button class="jd-btn" id="tgCari">🔍 Cari Chat ID</button></div>
+  <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-weight:700"><input type="checkbox" id="tgAktif"> Hantar makluman secara automatik</label>
+  <div class="modal-act"><button class="jd-btn" id="tgUji">📨 Uji Hantar</button><button class="m-ok" id="tgSimpan">Simpan Tetapan Telegram</button></div>
+  <div class="tg-st" id="tgStatus"></div>
 </div></div>
 
 <div class="modal" id="modalTambah"><div class="modal-box">
@@ -337,6 +371,7 @@ function beep(freq, dur){
 /* ================== STATE ================== */
 function stateBaru(no){
   return { pid:genId(), noPerlawanan:no || "1", namaMerah:"Pesilat Merah", namaBiru:"Pesilat Biru",
+    pasukanMerah:"", pasukanBiru:"", kategori:"", kelas:"", tgMula:false,
     skorMerah:0, skorBiru:0, babak:1, jumlahBabak:3, masaSet:120, masaBaki:120,
     masaJalan:false, masaTamat:false, pemenang:null, bantahan:null, modSkor:"23", tvNotis:null, flash:null };
 }
@@ -466,6 +501,7 @@ function pilihPemenang(sisi){
   if(!confirm("Sahkan Sudut " + labelSisi(sisi) + " MENANG?")){ return; }
   state.pemenang = sisi; hentiMasa(true);
   tambahLog("🏆 <b>PEMENANG: " + sisi.toUpperCase() + "</b>");
+  tgKeputusan(sisi);
   beep(990, 0.25); renderSemua(); simpanState();
 }
 
@@ -520,6 +556,7 @@ function tick(){
 function mulaMasa(){
   if(state.masaJalan || state.pemenang || state.masaBaki <= 0){ return; }
   state.masaJalan = true; state.masaTamat = false;
+  if(!state.tgMula){ state.tgMula = true; tgMakluman(); }
   mulaT = Date.now(); mulaBaki = state.masaBaki;
   timerInterval = setInterval(tick, 200);
   renderMasa(); simpanState();
@@ -549,6 +586,7 @@ function resetSemua(){
   hentiMasa(true);
   var s = stateBaru(state.noPerlawanan);
   s.namaMerah = state.namaMerah; s.namaBiru = state.namaBiru;
+  s.pasukanMerah = state.pasukanMerah; s.pasukanBiru = state.pasukanBiru; s.kategori = state.kategori; s.kelas = state.kelas;
   s.masaSet = state.masaSet; s.masaBaki = state.masaSet; s.jumlahBabak = state.jumlahBabak; s.modSkor = state.modSkor;
   state = s;
   pending = {}; lastMatch = {};
@@ -564,6 +602,8 @@ function perlawananBaharu(){
   var noLama = parseInt(state.noPerlawanan, 10);
   var s = stateBaru(isNaN(noLama) ? "1" : String(noLama + 1));
   s.masaSet = state.masaSet; s.masaBaki = state.masaSet; s.jumlahBabak = state.jumlahBabak; s.modSkor = state.modSkor;
+  var seterusnya = jadual[cariIdxJadual(state.noPerlawanan) + 1];
+  if(seterusnya){ isiStateDariJadual(s, seterusnya); }
   state = s;
   pending = {}; lastMatch = {};
   fbReq("DELETE", "/votes").catch(function(){});
@@ -573,17 +613,136 @@ function perlawananBaharu(){
   bukaPerlawanan();
 }
 
+/* ================== JADUAL ================== */
+var jadual = [];
+function bacaLS(k, def){ try{ var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; }catch(e){ return def; } }
+function tulisLS(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function parseJadual(teks){
+  return teks.split(/\r?\n/).map(function(b){ return b.trim(); }).filter(function(b){ return b; }).map(function(b){
+    var c = b.indexOf("\t") >= 0 ? b.split("\t") : (b.indexOf("|") >= 0 ? b.split("|") : b.split(","));
+    c = c.map(function(x){ return x.trim(); });
+    return { no:c[0] || "", kategori:c[1] || "", kelas:c[2] || "", merah:c[3] || "", pasMerah:c[4] || "", biru:c[5] || "", pasBiru:c[6] || "" };
+  }).filter(function(j){ return j.no && !/^no\.?$/i.test(j.no); });
+}
+function teksJadual(){ return jadual.map(function(j){ return [j.no, j.kategori, j.kelas, j.merah, j.pasMerah, j.biru, j.pasBiru].join(" | "); }).join("\n"); }
+function cariIdxJadual(no){ for(var i = 0; i < jadual.length; i++){ if(String(jadual[i].no) === String(no)){ return i; } } return -1; }
+function isiStateDariJadual(s, j){
+  s.noPerlawanan = String(j.no); s.kategori = j.kategori; s.kelas = j.kelas;
+  s.namaMerah = j.merah || "Pesilat Merah"; s.pasukanMerah = j.pasMerah;
+  s.namaBiru = j.biru || "Pesilat Biru"; s.pasukanBiru = j.pasBiru;
+}
+function renderPratonton(){
+  var senarai = parseJadual(el("jdTeks").value), kini = state.noPerlawanan;
+  if(!senarai.length){ el("jdPratonton").innerHTML = "<div class=\"tg-st\">Belum ada perlawanan.</div>"; return; }
+  el("jdPratonton").innerHTML = "<div class=\"tg-st\">" + senarai.length + " perlawanan</div><table class=\"jd-tbl\"><tr><th>No</th><th>Kategori</th><th>Kelas</th><th>🔴 Merah</th><th>🔵 Biru</th></tr>" +
+    senarai.map(function(j){ return "<tr" + (String(j.no) === String(kini) ? " class=\"kini\"" : "") + "><td>" + escHtml(j.no) + "</td><td>" + escHtml(j.kategori) + "</td><td>" + escHtml(j.kelas) + "</td><td>" + escHtml(j.merah) + "<br><small>" + escHtml(j.pasMerah) + "</small></td><td>" + escHtml(j.biru) + "<br><small>" + escHtml(j.pasBiru) + "</small></td></tr>"; }).join("") + "</table>";
+}
+function bukaJadual(){
+  el("jdTeks").value = teksJadual(); renderPratonton();
+  var t = bacaLS("tg", {}); el("tgToken").value = t.token || ""; el("tgChat").value = t.chat || ""; el("tgAktif").checked = !!t.aktif;
+  setTxt("tgStatus", "");
+  bukaModal("modalJadual");
+}
+function simpanJadual(){
+  jadual = parseJadual(el("jdTeks").value);
+  tulisLS("jadual", jadual);
+  fbReq("PUT", "/jadual", jadual).catch(function(){});
+  renderPratonton(); toast("💾 Jadual disimpan (" + jadual.length + " perlawanan)");
+}
+function muatPertama(){
+  simpanJadual();
+  if(!jadual.length){ return; }
+  if(!confirm("Muat Perlawanan " + jadual[0].no + " sekarang? Markah semasa akan di-reset.")){ return; }
+  hentiMasa(true);
+  var s = stateBaru(); s.masaSet = state.masaSet; s.masaBaki = state.masaSet; s.jumlahBabak = state.jumlahBabak; s.modSkor = state.modSkor;
+  isiStateDariJadual(s, jadual[0]); state = s;
+  pending = {}; lastMatch = {};
+  fbReq("DELETE", "/votes").catch(function(){});
+  logList = []; renderLog(); simpanLog();
+  renderSemua(); simpanState(); tutupModal("modalJadual");
+}
+
+/* ================== TELEGRAM ================== */
+function tgEsc(x){ return String(x == null ? "" : x).replace(/[&<>]/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;" }[c]; }); }
+function tgPesilat(nama, pas){ return "<b>" + tgEsc(nama) + "</b>" + (pas ? " (" + tgEsc(pas) + ")" : ""); }
+function tgKat(kat, kelas){ var a = [kat, kelas].filter(function(x){ return x; }).map(tgEsc).join(" • "); return a ? "📂 " + a + "\n" : ""; }
+function tgHantar(teks, paksa){
+  var t = bacaLS("tg", {});
+  if(!t.token || !t.chat || (!t.aktif && !paksa)){ return Promise.resolve(null); }
+  return fetch("https://api.telegram.org/bot" + t.token + "/sendMessage", {
+    method:"POST", headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ chat_id:t.chat, text:teks, parse_mode:"HTML" })
+  }).then(function(r){ return r.json(); }).then(function(j){
+    if(!j.ok){ toast("⚠ Telegram: " + (j.description || "gagal")); }
+    return j;
+  }).catch(function(){ toast("⚠ Gagal hantar ke Telegram. Semak internet."); return null; });
+}
+function tgMakluman(){
+  var m = "🥋 <b>PERLAWANAN " + tgEsc(state.noPerlawanan) + " BERMULA</b>\n" + tgKat(state.kategori, state.kelas) +
+    "🔴 " + tgPesilat(state.namaMerah, state.pasukanMerah) + "\n🆚\n🔵 " + tgPesilat(state.namaBiru, state.pasukanBiru);
+  var idx = cariIdxJadual(state.noPerlawanan), lepas = idx >= 0 ? jadual.slice(idx + 1, idx + 3) : [];
+  if(lepas.length){
+    m += "\n\n📢 <b>SILA BERSEDIA:</b>";
+    lepas.forEach(function(j){
+      m += "\n\n▶️ <b>Perlawanan " + tgEsc(j.no) + "</b>\n" + tgKat(j.kategori, j.kelas) + "🔴 " + tgPesilat(j.merah, j.pasMerah) + "\n🔵 " + tgPesilat(j.biru, j.pasBiru);
+    });
+  }
+  tgHantar(m);
+}
+function tgKeputusan(sisi){
+  var menang = sisi === "merah" ? tgPesilat(state.namaMerah, state.pasukanMerah) : tgPesilat(state.namaBiru, state.pasukanBiru);
+  tgHantar("🏆 <b>KEPUTUSAN PERLAWANAN " + tgEsc(state.noPerlawanan) + "</b>\n" + tgKat(state.kategori, state.kelas) +
+    (sisi === "merah" ? "🔴 " : "🔵 ") + menang + " <b>MENANG</b>\nSkor: 🔴 " + state.skorMerah + " – " + state.skorBiru + " 🔵");
+}
+function tgSimpanTetapan(){
+  tulisLS("tg", { token:el("tgToken").value.trim(), chat:el("tgChat").value.trim(), aktif:el("tgAktif").checked });
+  toast("✈️ Tetapan Telegram disimpan");
+}
+function tgCariChat(){
+  var token = el("tgToken").value.trim();
+  if(!token){ setTxt("tgStatus", "Tampal token bot dahulu."); return; }
+  setTxt("tgStatus", "Mencari…");
+  fetch("https://api.telegram.org/bot" + token + "/getUpdates").then(function(r){ return r.json(); }).then(function(j){
+    if(!j.ok){ setTxt("tgStatus", "Token tidak sah: " + (j.description || "")); return; }
+    var chat = null;
+    (j.result || []).forEach(function(u){ var m = u.message || u.my_chat_member || u.channel_post; if(m && m.chat){ chat = m.chat; } });
+    if(!chat){ setTxt("tgStatus", "Tiada mesej dijumpai. Masukkan bot ke kumpulan, hantar satu mesej dalam kumpulan itu, kemudian cuba lagi."); return; }
+    el("tgChat").value = chat.id;
+    setTxt("tgStatus", "✓ Jumpa: " + (chat.title || chat.first_name || chat.id) + ". Tekan Simpan Tetapan Telegram.");
+  }).catch(function(){ setTxt("tgStatus", "Gagal sambung ke Telegram."); });
+}
+function tgUji(){
+  tgSimpanTetapan();
+  setTxt("tgStatus", "Menghantar…");
+  tgHantar("✅ Ujian makluman Sistem Skor Silat berjaya.", true).then(function(j){ setTxt("tgStatus", j && j.ok ? "✓ Mesej ujian dihantar. Semak kumpulan Telegram." : "✘ Gagal. Semak token & Chat ID."); });
+}
+
 /* ================== MODAL ================== */
 function bukaModal(id){ el(id).classList.add("show"); }
 function tutupModal(id){ el(id).classList.remove("show"); }
 function bukaPerlawanan(){
   el("inpNo").value = state.noPerlawanan; el("inpMerah").value = state.namaMerah; el("inpBiru").value = state.namaBiru;
+  el("inpPasMerah").value = state.pasukanMerah || ""; el("inpPasBiru").value = state.pasukanBiru || "";
+  el("inpKategori").value = state.kategori || ""; el("inpKelas").value = state.kelas || "";
+  var idx = cariIdxJadual(state.noPerlawanan);
+  el("inpPilihJadual").innerHTML = "<option value=\"\">— " + (jadual.length ? "Pilih perlawanan dari jadual" : "Jadual kosong (isi di 📋 Jadual)") + " —</option>" +
+    jadual.map(function(j, i){ return "<option value=\"" + i + "\"" + (i === idx ? " selected" : "") + ">P" + escHtml(j.no) + " — " + escHtml(j.merah) + " vs " + escHtml(j.biru) + (j.kelas ? " (" + escHtml(j.kelas) + ")" : "") + "</option>"; }).join("");
   bukaModal("modalPerlawanan");
 }
+function isiModalDariJadual(){
+  var j = jadual[parseInt(el("inpPilihJadual").value, 10)];
+  if(!j){ return; }
+  el("inpNo").value = j.no; el("inpKategori").value = j.kategori; el("inpKelas").value = j.kelas;
+  el("inpMerah").value = j.merah; el("inpPasMerah").value = j.pasMerah; el("inpBiru").value = j.biru; el("inpPasBiru").value = j.pasBiru;
+}
 function simpanPerlawanan(){
+  var noLama = state.noPerlawanan;
   state.noPerlawanan = el("inpNo").value.trim() || state.noPerlawanan;
+  if(state.noPerlawanan !== noLama){ state.tgMula = false; }
   state.namaMerah = el("inpMerah").value.trim() || "Pesilat Merah";
   state.namaBiru = el("inpBiru").value.trim() || "Pesilat Biru";
+  state.pasukanMerah = el("inpPasMerah").value.trim(); state.pasukanBiru = el("inpPasBiru").value.trim();
+  state.kategori = el("inpKategori").value.trim(); state.kelas = el("inpKelas").value.trim();
   tutupModal("modalPerlawanan");
   tambahLog("📝 Perlawanan " + escHtml(state.noPerlawanan) + ": " + escHtml(state.namaMerah) + " vs " + escHtml(state.namaBiru));
   renderSemua(); simpanState();
@@ -598,7 +757,8 @@ function kesanPop(sisi){ var n = el(sisi === "merah" ? "kSkorM" : "kSkorB"); if(
 function renderSemua(){ renderSkor(); renderMasa(); renderBabak(); renderBantahan(); renderLampu(); setTxt("tmMerah", "(" + state.skorMerah + ")"); setTxt("tmBiru", "(" + state.skorBiru + ")"); }
 function renderSkor(){
   setTxt("kSkorM", state.skorMerah); setTxt("kSkorB", state.skorBiru);
-  setTxt("nmMerah", state.namaMerah); setTxt("nmBiru", state.namaBiru);
+  setTxt("nmMerah", state.namaMerah + (state.pasukanMerah ? " (" + state.pasukanMerah + ")" : ""));
+  setTxt("nmBiru", state.namaBiru + (state.pasukanBiru ? " (" + state.pasukanBiru + ")" : ""));
 }
 function renderMasa(){
   var n = el("kTimer"); n.textContent = fmtMasa(state.masaBaki);
@@ -683,6 +843,14 @@ function wire(){
   el("segBabak").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ pilihBabak(parseInt(b.getAttribute("data-bab"), 10)); }); });
   el("btnPerlawanan").addEventListener("click", bukaPerlawanan);
   el("mSimpanPerlawanan").addEventListener("click", simpanPerlawanan);
+  el("inpPilihJadual").addEventListener("change", isiModalDariJadual);
+  el("btnJadual").addEventListener("click", bukaJadual);
+  el("jdTeks").addEventListener("input", renderPratonton);
+  el("jdSimpan").addEventListener("click", simpanJadual);
+  el("jdMuat").addEventListener("click", muatPertama);
+  el("tgSimpan").addEventListener("click", tgSimpanTetapan);
+  el("tgCari").addEventListener("click", tgCariChat);
+  el("tgUji").addEventListener("click", tgUji);
   el("btnBantahan").addEventListener("click", function(){ if(state.bantahan){ return; } markModalSeg(); bukaModal("modalBantahan"); });
   el("btnTambah").addEventListener("click", function(){ renderSemua(); bukaModal("modalTambah"); });
   el("segJenis").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ modalJenis = b.getAttribute("data-bjenis"); markModalSeg(); }); });
@@ -706,9 +874,10 @@ setInterval(syncClock, 60000);
 function mula(){
   wire(); renderSemua(); renderLog(); renderKerusi();
   syncClock().then(function(){
-    return Promise.all([fbReq("GET", "/state"), fbReq("GET", "/log")]);
+    return Promise.all([fbReq("GET", "/state"), fbReq("GET", "/log"), fbReq("GET", "/jadual").catch(function(){ return null; })]);
   }).then(function(r){
     var s = r[0], lg = r[1];
+    jadual = Array.isArray(r[2]) ? r[2].filter(function(x){ return x; }) : bacaLS("jadual", []);
     if(s && typeof s === "object" && s.pid){
       var d = stateBaru();
       Object.keys(s).forEach(function(k){ d[k] = s[k]; });

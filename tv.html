@@ -17,6 +17,8 @@
   .tv-top{display:flex;align-items:center;justify-content:space-between;padding:1.4vh 2.5vw;background:linear-gradient(180deg,#0c1322,#070b13);border-bottom:1px solid var(--line)}
   .tv-top .t{font-size:2vh;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:800}
   .tv-top .t span{color:var(--gold)}
+  .pas{font-size:2.6vh;font-weight:800;color:#fff;opacity:.85;margin-top:.8vh;letter-spacing:.06em;min-height:3vh}
+  .kat{font-size:2.2vh;font-weight:800;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;text-align:center;margin-top:1vh}
   .tv-body{display:grid;grid-template-columns:1fr auto 1fr;min-height:0}
   .side{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2vh 2vw;overflow:hidden}
   .side::before{content:"";position:absolute;top:0;left:0;right:0;height:1vh}
@@ -79,17 +81,18 @@
     <div class="side merah" id="sideM">
       <div class="penalti" id="penM"></div>
       <div class="crown merah" id="crownM"><div class="c">👑</div><div class="w">Merah Menang</div></div>
-      <div class="label">Merah</div><div class="chip" id="nmM">Pesilat Merah</div><div class="score num" id="skM">0</div>
+      <div class="label">Merah</div><div class="chip" id="nmM">Pesilat Merah</div><div class="pas" id="pasM"></div><div class="score num" id="skM">0</div>
     </div>
     <div class="mid">
       <div class="round" id="round">Babak 1</div>
+      <div class="kat" id="kat"></div>
       <div class="timer num" id="timer">2:00</div>
       <div class="dots" id="dots"></div>
     </div>
     <div class="side biru" id="sideB">
       <div class="penalti" id="penB"></div>
       <div class="crown biru" id="crownB"><div class="c">👑</div><div class="w">Biru Menang</div></div>
-      <div class="label">Biru</div><div class="chip" id="nmB">Pesilat Biru</div><div class="score num" id="skB">0</div>
+      <div class="label">Biru</div><div class="chip" id="nmB">Pesilat Biru</div><div class="pas" id="pasB"></div><div class="score num" id="skB">0</div>
     </div>
   </div>
   <div class="foot">Sri Gayong Panglima Ulung &nbsp;•&nbsp; Sistem Skor Silat Tanding</div>
@@ -167,6 +170,8 @@ function render(s){
   var p = lama || {};
   setTxt("nmM", s.namaMerah || "Pesilat Merah");
   setTxt("nmB", s.namaBiru || "Pesilat Biru");
+  setTxt("pasM", s.pasukanMerah || ""); setTxt("pasB", s.pasukanBiru || "");
+  setTxt("kat", [s.kategori, s.kelas].filter(function(x){ return x; }).join(" • "));
   setTxt("skM", s.skorMerah || 0);
   setTxt("skB", s.skorBiru || 0);
   setTxt("topInfo", "Perlawanan " + (s.noPerlawanan || "-") + "  •  Babak " + (s.babak || 1) + "/" + (s.jumlahBabak || 3));
