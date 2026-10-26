@@ -879,8 +879,22 @@ setInterval(renderKerusi, 3000);
 setInterval(syncClock, 60000);
 
 /* ================== MULA ================== */
+function puncaFirebase(e){
+  var m = String(e && e.message || "");
+  if(!navigator.onLine){ return "Tiada internet. Semak Wi-Fi / data."; }
+  if(m.indexOf("401") >= 0 || m.indexOf("403") >= 0){ return "Firebase menolak akses (peraturan/Rules tamat tempoh). Buka Firebase Console → Realtime Database → Rules dan kemas kini."; }
+  if(m.indexOf("404") >= 0){ return "Pangkalan data Firebase tidak dijumpai. Semak DB_URL."; }
+  if(m.indexOf("HTTP") >= 0){ return "Ralat pelayan Firebase (" + m + ")."; }
+  return "Internet tidak stabil atau disekat oleh rangkaian.";
+}
+var cubaSambung = 0;
 function mula(){
   wire(); renderSemua(); renderLog(); renderKerusi();
+  sambung();
+}
+function sambung(){
+  cubaSambung++;
+  setTxt("connTxt", cubaSambung > 1 ? "Cuba semula (" + cubaSambung + ")…" : "Menyambung…");
   syncClock().then(function(){
     return Promise.all([fbReq("GET", "/state"), fbReq("GET", "/log"), fbReq("GET", "/jadual").catch(function(){ return null; })]);
   }).then(function(r){
@@ -906,9 +920,12 @@ function mula(){
         fbListen("/bantahanUndi", onBantahanUndi, setConn);
       }
     }, setConn);
-  }).catch(function(){
+  }).catch(function(e){
     setConn(false);
-    toast("⚠ Tak dapat sambung ke Firebase. Semak internet, kemudian muat semula halaman.");
+    var punca = puncaFirebase(e);
+    setTxt("connTxt", "Terputus");
+    toast("⚠ Gagal sambung ke Firebase: " + punca + " Cuba semula automatik dalam 5 saat…");
+    setTimeout(sambung, 5000);
   });
 }
 window.addEventListener("beforeunload", function(e){ if(state.masaJalan){ e.preventDefault(); e.returnValue = ""; } });

@@ -214,7 +214,11 @@ function ambilKerusi(){
   diambil = false; claimed = false;
   return fbReq("PUT", "/kerusi/" + JURI_ID, { sesi:SESI, at:{ ".sv":"timestamp" } }).then(function(){
     claimed = true; render();
-  }).catch(function(){ setTxt("foot", "⚠ Gagal sambung. Cuba lagi…"); setTimeout(ambilKerusi, 2000); });
+  }).catch(function(e){
+    var m = String(e && e.message || "");
+    setTxt("foot", !navigator.onLine ? "⚠ Tiada internet. Cuba lagi…" : (/40[13]/.test(m) ? "⚠ Firebase menolak akses (Rules). Maklumkan Ketua." : "⚠ Gagal sambung. Cuba lagi…"));
+    setTimeout(ambilKerusi, 3000);
+  });
 }
 function heartbeat(){
   if(!claimed || diambil){ return; }
