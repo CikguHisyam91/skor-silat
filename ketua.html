@@ -158,6 +158,7 @@
   <div class="brand"><b>SILAT <span>TANDING</span></b><small>Sri Gayong Panglima Ulung</small></div>
   <span class="role">KETUA PERTANDINGAN</span>
   <div class="top-right">
+    <div class="conn" id="arkibStatus" style="display:none"></div>
     <div class="kerusi" id="kerusiBox"><span>J1</span><span>J2</span><span>J3</span></div>
     <div class="conn" id="conn"><i></i><span id="connTxt">Menyambung…</span></div>
   </div>
@@ -265,6 +266,13 @@
   <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-weight:700"><input type="checkbox" id="tgAktif"> Hantar makluman secara automatik</label>
   <div class="modal-act"><button class="jd-btn" id="tgUji">📨 Uji Hantar</button><button class="m-ok" id="tgSimpan">Simpan Tetapan Telegram</button></div>
   <div class="tg-st" id="tgStatus"></div>
+
+  <div class="modal-label" style="margin-top:22px;color:var(--gold)">📊 Arkib Google Sheets</div>
+  <div class="modal-desc">Setiap keputusan perlawanan akan disimpan kekal dalam Google Sheet. Tampal URL Web App (berakhir dengan <b>/exec</b>). Lihat PANDUAN-ARKIB.md. Biarkan kosong jika tidak mahu arkib.</div>
+  <div class="modal-label">URL Web App</div>
+  <input class="inp" id="arkibUrl" placeholder="https://script.google.com/macros/s/.../exec">
+  <div class="modal-act"><button class="jd-btn" id="arkibUji">🔌 Uji Sambungan</button><button class="m-ok" id="arkibSimpan">Simpan</button></div>
+  <div class="tg-st" id="arkibStatusModal"></div>
 </div></div>
 
 <div class="modal" id="modalTambah"><div class="modal-box">
@@ -502,6 +510,7 @@ function pilihPemenang(sisi){
   state.pemenang = sisi; hentiMasa(true);
   tambahLog("🏆 <b>PEMENANG: " + sisi.toUpperCase() + "</b>");
   tgKeputusan(sisi);
+  arkibKeputusan(sisi);
   beep(990, 0.25); renderSemua(); simpanState();
 }
 
@@ -649,6 +658,7 @@ function bukaJadual(){
   el("jdTeks").value = teksJadual(); renderPratonton();
   var t = bacaLS("tg", {}); el("tgToken").value = t.token || ""; el("tgChat").value = t.chat || ""; el("tgAktif").checked = !!t.aktif;
   setTxt("tgStatus", "");
+  el("arkibUrl").value = arkibUrl(); setTxt("arkibStatusModal", "");
   bukaModal("modalJadual");
 }
 function simpanJadual(){
@@ -723,6 +733,75 @@ function tgUji(){
   tgSimpanTetapan();
   setTxt("tgStatus", "Menghantar…");
   tgHantar("✅ Ujian makluman Sistem Skor Silat berjaya.", true).then(function(j){ setTxt("tgStatus", j && j.ok ? "✓ Mesej ujian dihantar. Semak kumpulan Telegram." : "✘ Gagal. Semak token & Chat ID."); });
+}
+
+/* ================== ARKIB GOOGLE SHEETS ================== */
+var arkibSibuk = false, arkibOk = false;
+function arkibUrl(){ return String(bacaLS("arkibUrl", "") || "").trim(); }
+function arkibGilir(){ var g = bacaLS("arkibGilir", []); return Array.isArray(g) ? g : []; }
+function teksLogArkib(){
+  return logList.slice().reverse().map(function(l){
+    var m = String(l.m || "").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"");
+    return jam(l.t) + " " + m;
+  }).join("\n");
+}
+function arkibKeputusan(sisi){
+  if(!arkibUrl()){ return; }
+  var d = {
+    pid:state.pid, noPerlawanan:state.noPerlawanan, kategori:state.kategori || "", kelas:state.kelas || "",
+    namaMerah:state.namaMerah, pasukanMerah:state.pasukanMerah || "", skorMerah:state.skorMerah,
+    namaBiru:state.namaBiru, pasukanBiru:state.pasukanBiru || "", skorBiru:state.skorBiru,
+    pemenang:sisi === "merah" ? "MERAH" : "BIRU", babak:state.babak, jumlahBabak:state.jumlahBabak,
+    log:teksLogArkib()
+  };
+  // satu entri bagi setiap pid: keputusan terbaharu menggantikan yang lama dalam gilir
+  var g = arkibGilir().filter(function(x){ return x.pid !== d.pid; });
+  g.push(d); tulisLS("arkibGilir", g);
+  arkibOk = false; renderArkib(); hantarGilirArkib();
+}
+function hantarGilirArkib(){
+  var url = arkibUrl(), g = arkibGilir();
+  if(arkibSibuk || !url || !g.length){ renderArkib(); return; }
+  arkibSibuk = true;
+  var item = g[0];
+  fetch(url, { method:"POST", mode:"no-cors", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body:JSON.stringify(item) })
+    .then(function(){
+      var baki = arkibGilir().filter(function(x){ return !(x.pid === item.pid && JSON.stringify(x) === JSON.stringify(item)); });
+      tulisLS("arkibGilir", baki);
+      arkibSibuk = false; arkibOk = true; renderArkib();
+      if(baki.length){ hantarGilirArkib(); }
+    }, function(){
+      arkibSibuk = false; arkibOk = false; renderArkib();
+    });
+}
+function renderArkib(){
+  var n = el("arkibStatus");
+  if(!n){ return; }
+  var bil = arkibGilir().length;
+  if(!arkibUrl()){ n.style.display = "none"; return; }
+  n.style.display = "";
+  if(bil){ n.textContent = "⏳ Menunggu internet (" + bil + ")"; }
+  else if(arkibOk){ n.textContent = "📊 Diarkib"; }
+  else { n.textContent = "📊 Arkib sedia"; }
+}
+function arkibSimpanUrl(){
+  var u = el("arkibUrl").value.trim();
+  if(u && !/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)){ setTxt("arkibStatusModal", "⚠ URL mesti bermula https://script.google.com/ dan berakhir dengan /exec"); return false; }
+  tulisLS("arkibUrl", u);
+  setTxt("arkibStatusModal", u ? "✓ URL arkib disimpan." : "Arkib dimatikan (URL kosong).");
+  renderArkib(); hantarGilirArkib();
+  return true;
+}
+function arkibUjiSambungan(){
+  if(!arkibSimpanUrl()){ return; }
+  var u = arkibUrl();
+  if(!u){ return; }
+  setTxt("arkibStatusModal", "Menguji…");
+  fetch(u).then(function(r){ return r.json(); }).then(function(j){
+    setTxt("arkibStatusModal", j && j.ok ? "✓ Sambungan berjaya. Arkib sedia digunakan." : "✘ Jawapan tidak dijangka. Semak deployment.");
+  }).catch(function(){
+    setTxt("arkibStatusModal", "✘ Gagal sambung. Pastikan Deploy sebagai Web app, Execute as: Me, Who has access: Anyone.");
+  });
 }
 
 /* ================== MODAL ================== */
@@ -859,6 +938,9 @@ function wire(){
   el("tgSimpan").addEventListener("click", tgSimpanTetapan);
   el("tgCari").addEventListener("click", tgCariChat);
   el("tgUji").addEventListener("click", tgUji);
+  el("arkibSimpan").addEventListener("click", arkibSimpanUrl);
+  el("arkibUji").addEventListener("click", arkibUjiSambungan);
+  window.addEventListener("online", hantarGilirArkib);
   el("btnBantahan").addEventListener("click", function(){ if(state.bantahan){ return; } markModalSeg(); bukaModal("modalBantahan"); });
   el("btnTambah").addEventListener("click", function(){ renderSemua(); bukaModal("modalTambah"); });
   el("segJenis").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ modalJenis = b.getAttribute("data-bjenis"); markModalSeg(); }); });
@@ -877,6 +959,7 @@ setInterval(function(){
 }, 500);
 setInterval(renderKerusi, 3000);
 setInterval(syncClock, 60000);
+setInterval(hantarGilirArkib, 30000);
 
 /* ================== MULA ================== */
 function puncaFirebase(e){
@@ -889,7 +972,7 @@ function puncaFirebase(e){
 }
 var cubaSambung = 0;
 function mula(){
-  wire(); renderSemua(); renderLog(); renderKerusi();
+  wire(); renderSemua(); renderLog(); renderKerusi(); renderArkib(); hantarGilirArkib();
   sambung();
 }
 function sambung(){
