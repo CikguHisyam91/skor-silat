@@ -844,6 +844,9 @@ function renderModKej(){
 function sambungKejohanan(){
   simpanJadual();
   if(!jadual.length){ toast("Jadual kosong. Isi jadual dahulu."); return; }
+  var nama = prompt("Nama kejohanan yang hendak disambung (mesti sama seperti hari pertama):", kejId());
+  if(!nama){ return; }
+  tulisLS("kejId", nama.trim().replace(/\s+/g, "-"));
   var url = arkibUrl();
   setTxt("kejInfo", "Menyemak perlawanan yang telah selesai…");
   var dariSheet = url ? fetch(url + "?action=senarai&kej=" + encodeURIComponent(kejId())).then(function(r){ return r.json(); }).then(function(j){ return j && j.ok && Array.isArray(j.selesai) ? j.selesai.map(String) : []; }).catch(function(){ return []; }) : Promise.resolve([]);

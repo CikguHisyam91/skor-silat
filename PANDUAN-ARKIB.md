@@ -80,7 +80,7 @@ Gunakan **Simulasi** untuk latihan atau taklimat juri, supaya Sheet dan kumpulan
 
 ## ⏭ Sambung Kejohanan (contoh: hari kedua, mula dari perlawanan 51)
 1. Buka **📋 Jadual & Telegram** dan pastikan jadual penuh sudah ditampal.
-2. Tekan **⏭ Sambung Kejohanan**.
+2. Tekan **⏭ Sambung Kejohanan**, kemudian sahkan **nama kejohanan**. Nama mesti sama seperti hari pertama, contohnya `MSSD-2026`.
 3. Sistem semak perlawanan yang sudah selesai, dalam laptop ini **dan** dalam Google Sheet. Kemudian sistem terus muatkan perlawanan pertama yang **belum** selesai.
    Ini berfungsi walaupun anda guna laptop lain, kerana senarai diambil dari Google Sheet.
 4. Dalam pratonton jadual, perlawanan yang sudah selesai bertanda ✅.
