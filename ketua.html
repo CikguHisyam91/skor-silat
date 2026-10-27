@@ -158,6 +158,7 @@
   <div class="brand"><b>SILAT <span>TANDING</span></b><small>Sri Gayong Panglima Ulung</small></div>
   <span class="role">KETUA PERTANDINGAN</span>
   <div class="top-right">
+    <div class="conn" id="modKejBadge"></div>
     <div class="conn" id="arkibStatus" style="display:none"></div>
     <div class="kerusi" id="kerusiBox"><span>J1</span><span>J2</span><span>J3</span></div>
     <div class="conn" id="conn"><i></i><span id="connTxt">Menyambung…</span></div>
@@ -201,6 +202,8 @@
         <div class="seg" id="segJumlah"><button data-jum="1">1</button><button data-jum="2">2</button><button data-jum="3">3</button></div>
         <div class="mini-label">Babak semasa</div>
         <div class="seg" id="segBabak"><button data-bab="1">B1</button><button data-bab="2">B2</button><button data-bab="3">B3</button></div>
+        <div class="mini-label">Mod kejohanan</div>
+        <div class="seg" id="segKej"><button data-kej="simulasi">🧪 Simulasi</button><button data-kej="sebenar">🏆 Kejohanan Sebenar</button></div>
         <div class="mini-label">Mod skor juri</div>
         <div class="seg" id="segMod"><button data-mod="23">2/3 Juri Sama</button><button data-mod="terus">Terus Masuk (1 Fon)</button></div>
         <div class="mini-label">Undi juri menunggu</div>
@@ -255,6 +258,8 @@
   <div class="modal-desc">Satu baris = satu perlawanan. Susunan lajur:<br><b>No | Kategori | Kelas Berat | Nama Merah | Pasukan Merah | Nama Biru | Pasukan Biru</b><br>Boleh salin terus 7 lajur dari Google Sheet / Excel dan tampal di sini.</div>
   <textarea class="inp" id="jdTeks" placeholder="1 | Remaja Putera | Kelas A | Ali | SK Kota | Abu | SK Bukit"></textarea>
   <div class="modal-act"><button class="m-ok" id="jdSimpan">💾 Simpan Jadual</button><button class="jd-btn" id="jdMuat">▶ Muat perlawanan pertama</button></div>
+  <div class="modal-act"><button class="jd-btn" id="jdSambung">⏭ Sambung Kejohanan (perlawanan belum selesai)</button><button class="jd-btn" id="jdKejBaru">🆕 Mula Kejohanan Baharu</button></div>
+  <div class="tg-st" id="kejInfo"></div>
   <div id="jdPratonton"></div>
 
   <div class="modal-label" style="margin-top:22px;color:var(--gold)">✈️ Makluman Telegram (percuma)</div>
@@ -509,8 +514,13 @@ function pilihPemenang(sisi){
   if(!confirm("Sahkan Sudut " + labelSisi(sisi) + " MENANG?")){ return; }
   state.pemenang = sisi; hentiMasa(true);
   tambahLog("🏆 <b>PEMENANG: " + sisi.toUpperCase() + "</b>");
-  tgKeputusan(sisi);
-  arkibKeputusan(sisi);
+  if(modKej() === "sebenar"){
+    tandaSelesai(state.noPerlawanan);
+    tgKeputusan(sisi);
+    arkibKeputusan(sisi);
+  } else {
+    tambahLog("🧪 Mod Simulasi — keputusan tidak direkod");
+  }
   beep(990, 0.25); renderSemua(); simpanState();
 }
 
@@ -565,7 +575,7 @@ function tick(){
 function mulaMasa(){
   if(state.masaJalan || state.pemenang || state.masaBaki <= 0){ return; }
   state.masaJalan = true; state.masaTamat = false;
-  if(!state.tgMula){ state.tgMula = true; tgMakluman(); }
+  if(!state.tgMula){ state.tgMula = true; if(modKej() === "sebenar"){ tgMakluman(); } }
   mulaT = Date.now(); mulaBaki = state.masaBaki;
   timerInterval = setInterval(tick, 200);
   renderMasa(); simpanState();
@@ -644,7 +654,7 @@ function renderPratonton(){
   var senarai = parseJadual(el("jdTeks").value), kini = state.noPerlawanan;
   if(!senarai.length){ el("jdPratonton").innerHTML = "<div class=\"tg-st\">Belum ada perlawanan.</div>"; return; }
   el("jdPratonton").innerHTML = "<div class=\"tg-st\">" + senarai.length + " perlawanan</div><table class=\"jd-tbl\"><tr><th>No</th><th>Kategori</th><th>Kelas</th><th>🔴 Merah</th><th>🔵 Biru</th></tr>" +
-    senarai.map(function(j){ return "<tr" + (String(j.no) === String(kini) ? " class=\"kini\"" : "") + "><td>" + escHtml(j.no) + "</td><td>" + escHtml(j.kategori) + "</td><td>" + escHtml(j.kelas) + "</td><td>" + escHtml(j.merah) + "<br><small>" + escHtml(j.pasMerah) + "</small></td><td>" + escHtml(j.biru) + "<br><small>" + escHtml(j.pasBiru) + "</small></td></tr>"; }).join("") + "</table>";
+    senarai.map(function(j){ return "<tr" + (String(j.no) === String(kini) ? " class=\"kini\"" : "") + "><td>" + (senaraiSelesai().indexOf(String(j.no)) >= 0 ? "✅ " : "") + escHtml(j.no) + "</td><td>" + escHtml(j.kategori) + "</td><td>" + escHtml(j.kelas) + "</td><td>" + escHtml(j.merah) + "<br><small>" + escHtml(j.pasMerah) + "</small></td><td>" + escHtml(j.biru) + "<br><small>" + escHtml(j.pasBiru) + "</small></td></tr>"; }).join("") + "</table>";
 }
 function teksTicker(){
   var idx = cariIdxJadual(state.noPerlawanan), lepas = idx >= 0 ? jadual.slice(idx + 1, idx + 3) : [];
@@ -658,7 +668,7 @@ function bukaJadual(){
   el("jdTeks").value = teksJadual(); renderPratonton();
   var t = bacaLS("tg", {}); el("tgToken").value = t.token || ""; el("tgChat").value = t.chat || ""; el("tgAktif").checked = !!t.aktif;
   setTxt("tgStatus", "");
-  el("arkibUrl").value = arkibUrl(); setTxt("arkibStatusModal", "");
+  el("arkibUrl").value = arkibUrl(); setTxt("arkibStatusModal", ""); renderModKej();
   bukaModal("modalJadual");
 }
 function simpanJadual(){
@@ -670,10 +680,13 @@ function simpanJadual(){
 function muatPertama(){
   simpanJadual();
   if(!jadual.length){ return; }
-  if(!confirm("Muat Perlawanan " + jadual[0].no + " sekarang? Markah semasa akan di-reset.")){ return; }
+  muatPerlawanan(jadual[0]);
+}
+function muatPerlawanan(j){
+  if(!confirm("Muat Perlawanan " + j.no + " (" + j.merah + " vs " + j.biru + ") sekarang? Markah semasa akan di-reset.")){ return; }
   hentiMasa(true);
   var s = stateBaru(); s.masaSet = state.masaSet; s.masaBaki = state.masaSet; s.jumlahBabak = state.jumlahBabak; s.modSkor = state.modSkor;
-  isiStateDariJadual(s, jadual[0]); state = s;
+  isiStateDariJadual(s, j); state = s;
   pending = {}; lastMatch = {};
   fbReq("DELETE", "/votes").catch(function(){});
   logList = []; renderLog(); simpanLog();
@@ -737,7 +750,8 @@ function tgUji(){
 
 /* ================== ARKIB GOOGLE SHEETS ================== */
 var arkibSibuk = false, arkibOk = false;
-function arkibUrl(){ return String(bacaLS("arkibUrl", "") || "").trim(); }
+var ARKIB_URL_ASAL = "https://script.google.com/a/macros/moe-dl.edu.my/s/AKfycbwNiptdzRsGEn8D-idktNQ-m0ikURZN8hFzZdggFKvTwvVntoHorAu2zOQtWBLDol-zIQ/exec";
+function arkibUrl(){ return String(bacaLS("arkibUrl", ARKIB_URL_ASAL) || "").trim(); }
 function arkibGilir(){ var g = bacaLS("arkibGilir", []); return Array.isArray(g) ? g : []; }
 function teksLogArkib(){
   return logList.slice().reverse().map(function(l){
@@ -752,7 +766,7 @@ function arkibKeputusan(sisi){
     namaMerah:state.namaMerah, pasukanMerah:state.pasukanMerah || "", skorMerah:state.skorMerah,
     namaBiru:state.namaBiru, pasukanBiru:state.pasukanBiru || "", skorBiru:state.skorBiru,
     pemenang:sisi === "merah" ? "MERAH" : "BIRU", babak:state.babak, jumlahBabak:state.jumlahBabak,
-    log:teksLogArkib()
+    log:teksLogArkib(), kejohanan:kejId()
   };
   // satu entri bagi setiap pid: keputusan terbaharu menggantikan yang lama dalam gilir
   var g = arkibGilir().filter(function(x){ return x.pid !== d.pid; });
@@ -802,6 +816,55 @@ function arkibUjiSambungan(){
   }).catch(function(){
     setTxt("arkibStatusModal", "✘ Gagal sambung. Pastikan Deploy sebagai Web app, Execute as: Me, Who has access: Anyone.");
   });
+}
+
+/* ================== MOD KEJOHANAN ================== */
+function modKej(){ return bacaLS("modKej", "sebenar") === "simulasi" ? "simulasi" : "sebenar"; }
+function hariIni(){ var d = new Date(); function p(n){ return (n < 10 ? "0" : "") + n; } return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
+function kejId(){ var k = bacaLS("kejId", ""); if(!k){ k = "KEJ-" + hariIni(); tulisLS("kejId", k); } return k; }
+function senaraiSelesai(){ var a = bacaLS("selesai_" + kejId(), []); return Array.isArray(a) ? a.map(String) : []; }
+function tandaSelesai(no){ var a = senaraiSelesai(); if(a.indexOf(String(no)) < 0){ a.push(String(no)); tulisLS("selesai_" + kejId(), a); } }
+function setModKej(m){
+  if(m === modKej()){ return; }
+  if(m === "simulasi" && !confirm("Tukar ke MOD SIMULASI? Keputusan tidak akan direkod ke Google Sheets dan Telegram tidak dihantar.")){ return; }
+  tulisLS("modKej", m);
+  tambahLog(m === "simulasi" ? "🧪 Mod Simulasi diaktifkan" : "🏆 Mod Kejohanan Sebenar diaktifkan");
+  toast(m === "simulasi" ? "🧪 Mod Simulasi: tiada rekod" : "🏆 Mod Kejohanan Sebenar: keputusan direkod");
+  renderModKej();
+}
+function renderModKej(){
+  var m = modKej();
+  el("segKej").querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-kej") === m); });
+  var bd = el("modKejBadge");
+  bd.textContent = m === "simulasi" ? "🧪 SIMULASI" : "🏆 SEBENAR";
+  bd.style.color = m === "simulasi" ? "#ffb347" : "var(--ok)";
+  var info = el("kejInfo");
+  if(info){ info.textContent = "Kejohanan: " + kejId() + " • " + senaraiSelesai().length + " perlawanan selesai direkod"; }
+}
+function sambungKejohanan(){
+  simpanJadual();
+  if(!jadual.length){ toast("Jadual kosong. Isi jadual dahulu."); return; }
+  var url = arkibUrl();
+  setTxt("kejInfo", "Menyemak perlawanan yang telah selesai…");
+  var dariSheet = url ? fetch(url + "?action=senarai&kej=" + encodeURIComponent(kejId())).then(function(r){ return r.json(); }).then(function(j){ return j && j.ok && Array.isArray(j.selesai) ? j.selesai.map(String) : []; }).catch(function(){ return []; }) : Promise.resolve([]);
+  dariSheet.then(function(dariSheetNo){
+    var semua = senaraiSelesai();
+    dariSheetNo.forEach(function(n){ if(semua.indexOf(n) < 0){ semua.push(n); } });
+    tulisLS("selesai_" + kejId(), semua);
+    renderModKej(); renderPratonton();
+    var seterusnya = null;
+    for(var i = 0; i < jadual.length; i++){ if(semua.indexOf(String(jadual[i].no)) < 0){ seterusnya = jadual[i]; break; } }
+    if(!seterusnya){ toast("✅ Semua " + jadual.length + " perlawanan dalam jadual telah selesai."); return; }
+    toast("⏭ " + semua.length + " perlawanan selesai. Seterusnya: Perlawanan " + seterusnya.no);
+    muatPerlawanan(seterusnya);
+  });
+}
+function kejohananBaharu(){
+  var nama = prompt("Nama/kod kejohanan baharu (cth. MSSD-2026). Rekod perlawanan selesai akan bermula semula dari kosong.", "KEJ-" + hariIni());
+  if(!nama){ return; }
+  tulisLS("kejId", nama.trim().replace(/\s+/g, "-"));
+  renderModKej(); renderPratonton();
+  toast("🆕 Kejohanan " + kejId() + " dimulakan");
 }
 
 /* ================== MODAL ================== */
@@ -940,6 +1003,9 @@ function wire(){
   el("tgUji").addEventListener("click", tgUji);
   el("arkibSimpan").addEventListener("click", arkibSimpanUrl);
   el("arkibUji").addEventListener("click", arkibUjiSambungan);
+  el("segKej").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ setModKej(b.getAttribute("data-kej")); }); });
+  el("jdSambung").addEventListener("click", sambungKejohanan);
+  el("jdKejBaru").addEventListener("click", kejohananBaharu);
   window.addEventListener("online", hantarGilirArkib);
   el("btnBantahan").addEventListener("click", function(){ if(state.bantahan){ return; } markModalSeg(); bukaModal("modalBantahan"); });
   el("btnTambah").addEventListener("click", function(){ renderSemua(); bukaModal("modalTambah"); });
@@ -972,7 +1038,7 @@ function puncaFirebase(e){
 }
 var cubaSambung = 0;
 function mula(){
-  wire(); renderSemua(); renderLog(); renderKerusi(); renderArkib(); hantarGilirArkib();
+  wire(); renderSemua(); renderLog(); renderKerusi(); renderArkib(); renderModKej(); hantarGilirArkib();
   sambung();
 }
 function sambung(){

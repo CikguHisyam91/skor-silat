@@ -13,11 +13,23 @@ var PENGEPALA = [
   'Cap Masa', 'ID Perlawanan', 'No Perlawanan', 'Kategori', 'Kelas',
   'Nama Merah', 'Pasukan Merah', 'Skor Merah',
   'Nama Biru', 'Pasukan Biru', 'Skor Biru',
-  'Pemenang', 'Nama Pemenang', 'Pasukan Pemenang', 'Babak Tamat', 'Log Markah'
+  'Pemenang', 'Nama Pemenang', 'Pasukan Pemenang', 'Babak Tamat', 'Log Markah', 'Kejohanan'
 ];
 
 /* ---------- Ujian sambungan ---------- */
 function doGet(e) {
+  var p = (e && e.parameter) || {};
+  if (p.action === 'senarai') {
+    // Senarai No Perlawanan yang telah selesai bagi satu kejohanan (untuk "Sambung Kejohanan")
+    var sh = pastikanTab_(), akhir = sh.getLastRow(), selesai = [];
+    if (akhir > 1) {
+      var d = sh.getRange(2, 1, akhir - 1, PENGEPALA.length).getDisplayValues();
+      for (var i = 0; i < d.length; i++) {
+        if (!p.kej || d[i][16] === String(p.kej)) selesai.push(d[i][2]);
+      }
+    }
+    return jawab_({ ok: true, selesai: selesai });
+  }
   return jawab_({ ok: true, mesej: 'Arkib Keputusan Silat aktif.' });
 }
 
@@ -48,7 +60,8 @@ function doPost(e) {
       merahMenang ? (d.namaMerah || '') : (d.namaBiru || ''),
       merahMenang ? (d.pasukanMerah || '') : (d.pasukanBiru || ''),
       String(d.babak || '') + (d.jumlahBabak ? ' / ' + d.jumlahBabak : ''),
-      String(d.log || '')
+      String(d.log || ''),
+      String(d.kejohanan || '')
     ];
 
     // Elak pendua: jika pid sudah wujud, kemas kini baris yang sama
@@ -91,7 +104,7 @@ function setup() {
   sh.getRange('K:K').setHorizontalAlignment('center').setBackground('#e6eeff');
   sh.getRange('L:L').setHorizontalAlignment('center').setFontWeight('bold');
   sh.getRange('P:P').setWrap(true);
-  var lebar = [140, 110, 90, 130, 110, 160, 140, 80, 160, 140, 80, 90, 160, 140, 90, 420];
+  var lebar = [140, 110, 90, 130, 110, 160, 140, 80, 160, 140, 80, 90, 160, 140, 90, 420, 130];
   for (var i = 0; i < lebar.length; i++) sh.setColumnWidth(i + 1, lebar[i]);
   sh.getRange('B:B').setFontColor('#888888');
 
