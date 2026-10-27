@@ -64,3 +64,31 @@ Jika anda tampal kod Code.gs versi baharu pada masa akan datang:
 5. Klik **Deploy**.
 
 **JANGAN tekan "New deployment".** Jika anda tekan New deployment, URL `/exec` akan bertukar dan skrin Ketua tidak lagi dapat menghantar keputusan. Jika tertekan juga, salin URL baharu dan tampal semula di skrin Ketua (Langkah 5).
+
+---
+
+## 🧪 Mod Simulasi vs 🏆 Kejohanan Sebenar
+Pilih mod di panel tengah skrin Ketua, pada bahagian **Mod kejohanan**. Mod semasa dipaparkan di penjuru atas skrin.
+
+| | 🧪 Simulasi | 🏆 Kejohanan Sebenar |
+|---|---|---|
+| Rekod ke Google Sheets | Tidak | Ya |
+| Makluman Telegram | Tidak | Ya |
+| Skor langsung TV & juri | Ya | Ya |
+
+Gunakan **Simulasi** untuk latihan atau taklimat juri, supaya Sheet dan kumpulan Telegram tidak dipenuhi data ujian.
+
+## ⏭ Sambung Kejohanan (contoh: hari kedua, mula dari perlawanan 51)
+1. Buka **📋 Jadual & Telegram** dan pastikan jadual penuh sudah ditampal.
+2. Tekan **⏭ Sambung Kejohanan**, kemudian sahkan **nama kejohanan**. Nama mesti sama seperti hari pertama, contohnya `MSSD-2026`.
+3. Sistem semak perlawanan yang sudah selesai, dalam laptop ini **dan** dalam Google Sheet. Kemudian sistem terus muatkan perlawanan pertama yang **belum** selesai.
+   Ini berfungsi walaupun anda guna laptop lain, kerana senarai diambil dari Google Sheet.
+4. Dalam pratonton jadual, perlawanan yang sudah selesai bertanda ✅.
+
+## 🆕 Mula Kejohanan Baharu
+Tekan **🆕 Mula Kejohanan Baharu** dan beri nama, contohnya `MSSD-2026`. Senarai "selesai" bermula semula dari kosong.
+Rekod kejohanan lama **kekal** dalam Sheet. Lajur **Kejohanan** membezakan setiap kejohanan.
+
+## ⚠️ Akaun sekolah (moe-dl.edu.my)
+Semasa Deploy, pada **Who has access**, pilih **Anyone** (bukan "Anyone within moe-dl.edu.my").
+Jika pilih yang dalam domain sahaja, skrin Ketua mungkin gagal menghantar keputusan. Tekan **🔌 Uji Sambungan** untuk pastikan.
