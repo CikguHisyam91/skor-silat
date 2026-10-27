@@ -145,7 +145,7 @@
     .ketua-screen{height:100%;grid-template-rows:auto auto minmax(0,1fr)}
     .cmd-row{min-height:0}
     .cmd-row>.card{min-height:0;overflow:hidden;display:flex;flex-direction:column}
-    .cmd-row>.console{overflow-y:auto}
+    .cmd-row>.console{overflow:hidden}
     .logcard .log{flex:1;max-height:none}
   }
   @media (min-width:1001px) and (max-height:720px){
@@ -205,7 +205,7 @@
         <div class="krow"><button class="kbtn win" data-win="merah">🏆 Sudut Merah Menang</button></div>
       </div>
 
-      <div class="card console">
+      <div class="card console"><div id="konsolIsi">
         <div class="ctrl-row"><button class="go" id="btnMula">▶ Mula</button><button class="stop" id="btnHenti">⏸ Henti</button><button id="btnReset">↺ Set semula</button></div>
         <div class="mini-label">Set masa (minit)</div>
         <div class="seg" id="segMasa"><button data-masa="1">1:00</button><button data-masa="1.5">1:30</button><button data-masa="2">2:00</button><button data-masa="3">3:00</button></div>
@@ -220,7 +220,7 @@
         <div class="mini-label">Undi juri menunggu</div>
         <div class="lampu-set" id="lampuKetua"></div>
         <div class="act-row"><button class="btn-resetM" id="btnResetMarkah">↺ Reset Markah</button><button class="btn-baru" id="btnBaru">🆕 Perlawanan Baharu</button></div>
-      </div>
+      </div></div>
 
       <div class="card kcorner biru">
         <h3><span class="dot biru"></span>Sudut Biru</h3>
@@ -1030,6 +1030,18 @@ function wire(){
   el("btnSelesaiBantahan").addEventListener("click", function(){ tamatBantahan(null); });
 }
 
+/* ================== MUATKAN PANEL TENGAH (tanpa skrol) ================== */
+function muatkanKonsol(){
+  var isi = el("konsolIsi"), kotak = isi.parentNode;
+  isi.style.zoom = 1;
+  if(window.innerWidth <= 1000){ return; }
+  var gaya = getComputedStyle(kotak);
+  var ada = kotak.clientHeight - parseFloat(gaya.paddingTop) - parseFloat(gaya.paddingBottom);
+  var perlu = isi.offsetHeight;
+  if(perlu > ada && ada > 0){ isi.style.zoom = Math.max(0.55, (ada - 2) / perlu); }
+}
+window.addEventListener("resize", muatkanKonsol);
+
 /* ================== GELUNG LATAR ================== */
 setInterval(function(){
   var now = serverNow(), ubah = false;
@@ -1053,6 +1065,7 @@ function puncaFirebase(e){
 var cubaSambung = 0;
 function mula(){
   wire(); renderSemua(); renderLog(); renderKerusi(); renderArkib(); renderModKej(); hantarGilirArkib();
+  muatkanKonsol(); setTimeout(muatkanKonsol, 500);
   sambung();
 }
 function sambung(){
