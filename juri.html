@@ -7,55 +7,66 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Juri — Silat Tanding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@600;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.setAttribute("data-tema", localStorage.getItem("tema") === "malam" ? "malam" : "siang");}catch(e){}</script>
 <style>
   :root{
-    --bg:#0a0e15;--bg2:#0e1420;--panel:#121a28;--line:#1f2c40;
-    --ink:#eaf0f8;--muted:#8595ad;--gold:#f1c232;--gold-dim:#5d4a14;
-    --merah:#e2333f;--merah-glow:#ff5662;--merah-deep:#3a0d12;
-    --biru:#2f6bff;--biru-glow:#5d93ff;--biru-deep:#0c1c45;--ok:#21c779;
+    --bg:#e4e9f0;--ink:#2b3445;--muted:#7a869a;--gold:#d99a00;
+    --merah:#e5484d;--biru:#3a6ff7;--ok:#1fb46a;--hi:#ffffff;--lo:#b8c1cf;
+    --timbul:6px 6px 14px var(--lo),-6px -6px 14px var(--hi);
+    --timbul-k:4px 4px 9px var(--lo),-4px -4px 9px var(--hi);
+    --tenggelam:inset 5px 5px 10px var(--lo),inset -5px -5px 10px var(--hi);
+  }
+  [data-tema="malam"]{
+    --bg:#22262e;--ink:#e7ecf3;--muted:#8a94a6;--gold:#ffc83d;
+    --merah:#ff5b61;--biru:#5b8cff;--ok:#2ed48a;--hi:#2d323c;--lo:#15181d;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
   html,body{margin:0;height:100%}
-  body{background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
-  .app{min-height:100%;display:flex;flex-direction:column;padding:10px 12px 14px;gap:10px}
-  .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-  .badge{font-size:15px;font-weight:900;letter-spacing:.12em;color:#0a0e15;background:var(--gold);padding:6px 14px;border-radius:999px}
-  .info{flex:1;text-align:center;font-size:11px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;font-weight:800}
+  body{background:var(--bg);color:var(--ink);font-family:"Urbanist",system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none;text-transform:uppercase;letter-spacing:.03em;transition:background .3s,color .3s}
+  button{font-family:inherit;text-transform:uppercase;letter-spacing:inherit}
+  .app{min-height:100%;display:flex;flex-direction:column;padding:12px 14px 14px;gap:14px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:18px;box-shadow:var(--timbul)}
+  .badge{font-size:14px;font-weight:900;letter-spacing:.12em;color:var(--gold);padding:7px 14px;border-radius:999px;box-shadow:var(--tenggelam)}
+  .info{flex:1;text-align:center;font-size:11px;color:var(--muted);letter-spacing:.12em;font-weight:800}
   .info b{color:var(--ink)}
-  .conn{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:800}
-  .conn i{width:10px;height:10px;border-radius:50%;background:#5a343a;display:block}
+  .tema-btn{border:none;background:var(--bg);border-radius:50%;width:34px;height:34px;font-size:15px;cursor:pointer;box-shadow:var(--timbul-k)}
+  .tema-btn:active{box-shadow:var(--tenggelam)}
+  .conn{display:flex;align-items:center;gap:6px;padding:0 4px}
+  .conn i{width:11px;height:11px;border-radius:50%;background:var(--merah);display:block}
   .conn.on i{background:var(--ok);box-shadow:0 0 10px var(--ok)}
-  .grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .corner{border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--line)}
-  .corner.merah{background:linear-gradient(180deg,var(--merah-deep),#160a0c)}
-  .corner.biru{background:linear-gradient(180deg,var(--biru-deep),#0a0e1c)}
-  .corner h3{margin:2px 0 0;text-align:center;font-size:13px;letter-spacing:.2em;text-transform:uppercase}
-  .corner.merah h3{color:var(--merah-glow)}.corner.biru h3{color:var(--biru-glow)}
-  .corner .who{text-align:center;font-size:12px;color:var(--ink);opacity:.8;font-weight:700;min-height:16px}
-  .pbtn{flex:1;min-height:110px;border:none;border-radius:16px;color:#fff;font-weight:900;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .07s,filter .07s}
-  .pbtn .v{font-size:54px;line-height:1}
-  .pbtn .t{font-size:14px;letter-spacing:.08em}
-  .pbtn:active{transform:scale(.95);filter:brightness(1.3)}
-  .corner.merah .pbtn{background:var(--merah)}.corner.merah .pbtn.kaki{background:#b9242f}
-  .corner.biru .pbtn{background:var(--biru)}.corner.biru .pbtn.kaki{background:#1f50d6}
-  .pbtn.sent{box-shadow:0 0 0 4px var(--gold) inset}
-  .foot{text-align:center;font-size:11px;color:var(--muted);min-height:16px}
+  .grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .corner{border-radius:22px;padding:12px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--timbul)}
+  .corner h3{margin:4px 0 0;text-align:center;font-size:14px;letter-spacing:.3em;font-weight:900}
+  .corner.merah h3{color:var(--merah)}.corner.biru h3{color:var(--biru)}
+  .corner .who{text-align:center;font-size:12px;color:var(--muted);font-weight:800;min-height:16px}
+  .pbtn{flex:1;min-height:110px;border:none;border-radius:20px;background:var(--bg);font-weight:900;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:var(--timbul);transition:box-shadow .08s,transform .07s}
+  .pbtn .v{font-size:56px;line-height:1}
+  .pbtn .t{font-size:14px;letter-spacing:.08em;color:var(--muted)}
+  .pbtn:active{box-shadow:var(--tenggelam);transform:scale(.98)}
+  .corner.merah .pbtn .v{color:var(--merah)}.corner.biru .pbtn .v{color:var(--biru)}
+  .pbtn.sent{box-shadow:var(--tenggelam),0 0 0 3px var(--gold)}
+  .foot{text-align:center;font-size:11px;color:var(--muted);min-height:16px;font-weight:800}
   .foot b{color:var(--ok)}
 
-  .panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:16px;background:var(--panel);border:1px solid var(--gold-dim);border-radius:18px}
-  .eyebrow{font-size:13px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:800}
+  .panel{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:16px;padding:18px;border-radius:24px;box-shadow:var(--timbul)}
+  .eyebrow{font-size:13px;letter-spacing:.28em;color:var(--gold);font-weight:800}
   .big{font-size:26px;font-weight:900;line-height:1.25}
-  .sub{color:var(--muted);font-size:14px;line-height:1.5}
-  .yn{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:520px}
-  .yn button{border:none;border-radius:18px;padding:38px 10px;font-weight:900;font-size:22px;color:#fff;cursor:pointer}
-  .yn button:active{transform:scale(.96)}
-  .yn .ya{background:var(--ok)}.yn .tidak{background:var(--merah)}
-  .yn button.sel{outline:4px solid var(--gold);outline-offset:3px}
+  .sub{color:var(--muted);font-size:14px;line-height:1.5;font-weight:700}
+  .yn{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:520px}
+  .yn button{border:none;border-radius:22px;padding:38px 10px;font-weight:900;font-size:22px;background:var(--bg);cursor:pointer;box-shadow:var(--timbul)}
+  .yn button:active{box-shadow:var(--tenggelam)}
+  .yn .ya{color:var(--ok)}.yn .tidak{color:var(--merah)}
+  .yn button.sel{box-shadow:var(--tenggelam),0 0 0 3px var(--gold)}
   .res{font-size:44px;font-weight:900}
-  .res.sah{color:var(--ok)}.res.tidak{color:var(--merah-glow)}
-  .pick{display:grid;gap:12px;width:100%;max-width:360px}
-  .pick button{border:1px solid var(--gold-dim);background:#2a2416;color:var(--gold);border-radius:16px;padding:24px;font-size:24px;font-weight:900;cursor:pointer}
-  .btn-gold{border:none;background:var(--gold);color:#0a0e15;border-radius:14px;padding:16px 22px;font-size:16px;font-weight:900;cursor:pointer}
+  .res.sah{color:var(--ok)}.res.tidak{color:var(--merah)}
+  .pick{display:grid;gap:16px;width:100%;max-width:360px}
+  .pick button{border:none;background:var(--bg);color:var(--gold);border-radius:20px;padding:24px;font-size:24px;font-weight:900;cursor:pointer;box-shadow:var(--timbul)}
+  .pick button:active{box-shadow:var(--tenggelam)}
+  .btn-gold{border:none;background:var(--bg);color:var(--gold);border-radius:16px;padding:16px 22px;font-size:16px;font-weight:900;cursor:pointer;box-shadow:var(--timbul)}
+  .btn-gold:active{box-shadow:var(--tenggelam)}
   .hide{display:none!important}
   @media (orientation:landscape) and (max-height:500px){ .pbtn{min-height:70px}.pbtn .v{font-size:40px} }
 </style>
@@ -65,6 +76,7 @@
   <div class="top">
     <span class="badge" id="badge">JURI</span>
     <div class="info" id="info">Menyambung…</div>
+    <button class="tema-btn" id="btnTema" title="Tukar Siang / Malam">🌙</button>
     <div class="conn" id="conn"><i></i></div>
   </div>
 
@@ -310,6 +322,13 @@ document.querySelectorAll("[data-bvote]").forEach(function(b){ b.addEventListene
 document.querySelectorAll("[data-pilih]").forEach(function(b){
   b.addEventListener("click", function(){ location.search = "?j=" + b.getAttribute("data-pilih"); });
 });
+function setTema(t){
+  document.documentElement.setAttribute("data-tema", t);
+  try{ localStorage.setItem("tema", t); }catch(e){}
+  el("btnTema").textContent = t === "malam" ? "☀️" : "🌙";
+}
+setTema(document.documentElement.getAttribute("data-tema") || "siang");
+el("btnTema").addEventListener("click", function(){ setTema(document.documentElement.getAttribute("data-tema") === "malam" ? "siang" : "malam"); });
 el("btnAmbil").addEventListener("click", function(){ SESI = genId(); ambilKerusi(); });
 
 /* skrin sentiasa hidup */
