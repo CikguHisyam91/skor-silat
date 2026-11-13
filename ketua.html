@@ -278,11 +278,9 @@
 
 <div class="modal" id="modalBantahan"><div class="modal-box">
   <div class="modal-head"><div class="modal-title">⚖️ Mohon Pengesahan</div><button class="modal-x" data-close="modalBantahan">✕</button></div>
-  <div class="modal-desc">Bantahan jurulatih. Juri akan undi YA/TIDAK. Keputusan ikut majoriti 2 dari 3.</div>
+  <div class="modal-desc">Bantahan jurulatih. KP pilih jenis sahaja. Juri pilih: Sudut Merah, Sudut Biru atau Tiada. Keputusan ikut majoriti 2 daripada 3.</div>
   <div class="modal-label">Jenis Bantahan</div>
-  <div class="modal-seg" id="segJenis"><button data-bjenis="pelanggaran">Pelanggaran</button><button data-bjenis="jatuhan">Jatuhan</button></div>
-  <div class="modal-label">Sudut Terlibat</div>
-  <div class="modal-seg" id="segSisi"><button data-bsisi="merah">Merah</button><button data-bsisi="biru">Biru</button></div>
+  <div class="modal-seg" id="segJenis"><button data-bjenis="jatuhan">🤼 Jatuhan</button><button data-bjenis="pelanggaran">⚠️ Pelanggaran</button></div>
   <div class="modal-act"><button class="m-batal" data-close="modalBantahan">Batal</button><button class="m-ok" id="mMohon">Mohon Pengesahan</button></div>
 </div></div>
 
@@ -426,7 +424,7 @@ var logList = [];
 var kerusi = {};
 var pending = {}, selesai = {}, lastMatch = {};
 var timerInterval = null;
-var modalJenis = "pelanggaran", modalSisi = "biru";
+var modalJenis = "jatuhan";
 var connOn = null;
 
 function makeWriter(path, getter){
@@ -588,8 +586,8 @@ function pilihPemenang(sisi){
 
 /* ================== BANTAHAN ================== */
 function mohonBantahan(){
-  state.bantahan = { id:genId(), jenis:modalJenis, sisi:modalSisi, undian:{}, keputusan:null, keputusanMasa:0 };
-  tambahLog("⚖️ Ketua mohon pengesahan " + labelJenis(modalJenis) + " — Sudut " + labelSisi(modalSisi));
+  state.bantahan = { id:genId(), jenis:modalJenis, undian:{}, keputusan:null, keputusanMasa:0 };
+  tambahLog("⚖️ Ketua mohon pengesahan " + labelJenis(modalJenis));
   beep(700, 0.15); tutupModal("modalBantahan"); renderSemua(); simpanState();
 }
 function onBantahanUndi(data){
@@ -602,16 +600,34 @@ function onBantahanUndi(data){
     if(u && u.bid === b.id && sesiSah(j, u.sesi) && b.undian[j] !== u.jawapan){ b.undian[j] = u.jawapan; ubah = true; }
   });
   if(!ubah){ return; }
-  var ya = kiraUndi(b, "ya"), tidak = kiraUndi(b, "tidak");
-  if(ya >= 2){ b.keputusan = "sah"; }
-  else if(tidak >= 2){ b.keputusan = "tidak_sah"; }
+  ["merah", "biru", "tiada"].forEach(function(p){ if(!b.keputusan && kiraUndi(b, p) >= 2){ b.keputusan = p; } });
+  if(!b.keputusan && kiraUndi(b, "merah") + kiraUndi(b, "biru") + kiraUndi(b, "tiada") >= 3){ b.keputusan = "tiada_keputusan"; }
   if(b.keputusan){
     b.keputusanMasa = Date.now();
-    tambahLog("⚖️ <b>Pengesahan " + labelJenis(b.jenis) + " (" + b.sisi.toUpperCase() + "): " + (b.keputusan === "sah" ? "SAH ✔" : "TIDAK SAH ✘") + "</b>");
-    beep(b.keputusan === "sah" ? 880 : 300, 0.22);
+    tambahLog("⚖️ <b>Pengesahan: " + teksKeputusan(b) + "</b>");
+    var sisi = b.keputusan === "merah" || b.keputusan === "biru" ? b.keputusan : null;
+    if(sisi && b.jenis === "jatuhan" && !state.pemenang){
+      // Jatuhan sah: +3 terus kepada sudut yang dipilih juri
+      if(sisi === "merah"){ state.skorMerah += 3; } else { state.skorBiru += 3; }
+      state.flash = { id:genId(), sisi:sisi };
+      tambahLog("🤼 <b>" + sisi.toUpperCase() + " +3</b> — Jatuhan (pengesahan juri)");
+      kesanPop(sisi);
+    }
+    if(sisi && b.jenis === "pelanggaran"){
+      toast("⚠️ Pelanggaran Sudut " + labelSisi(sisi) + " disahkan. Pilih tahap hukuman di panel Sudut " + labelSisi(sisi) + ".");
+    }
+    beep(sisi ? 880 : 300, 0.22);
   } else { beep(660, 0.05); }
   renderSemua(); simpanState();
 }
+function teksKeputusan(b){
+  var j = labelJenis(b.jenis);
+  if(b.keputusan === "merah"){ return "🔴 " + j + " Sudut Merah ✔"; }
+  if(b.keputusan === "biru"){ return "🔵 " + j + " Sudut Biru ✔"; }
+  if(b.keputusan === "tiada"){ return "✖ Tiada " + j; }
+  return "Tiada keputusan (undi berbeza)";
+}
+function kelasKeputusan(k){ return k === "merah" ? "km" : (k === "biru" ? "kb" : "kt"); }
 function kiraUndi(b, val){ var c = 0; var u = b.undian || {}; JURI.forEach(function(j){ if(u[j] === val){ c++; } }); return c; }
 function tamatBantahan(msg){
   if(!state.bantahan){ return; }
@@ -964,7 +980,6 @@ function simpanPerlawanan(){
 }
 function markModalSeg(){
   el("segJenis").querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-bjenis") === modalJenis); });
-  el("segSisi").querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-bsisi") === modalSisi); });
 }
 
 /* ================== RENDER ================== */
@@ -1012,9 +1027,9 @@ function renderBantahan(){
   if(b){
     st.classList.add("aktif");
     if(b.keputusan){
-      st.innerHTML = "<b>KEPUTUSAN: " + (b.keputusan === "sah" ? "✔ SAH" : "✘ TIDAK SAH") + "</b> — " + labelJenis(b.jenis) + " (" + labelSisi(b.sisi) + ")";
+      st.innerHTML = "<b>KEPUTUSAN: " + teksKeputusan(b) + "</b>" + (b.jenis === "pelanggaran" && (b.keputusan === "merah" || b.keputusan === "biru") ? " — pilih tahap hukuman" : "");
     } else {
-      st.innerHTML = "⚖️ <b>Pengesahan " + labelJenis(b.jenis) + "</b> (" + labelSisi(b.sisi) + ") — Undian: <b>YA " + kiraUndi(b, "ya") + " | TIDAK " + kiraUndi(b, "tidak") + "</b>";
+      st.innerHTML = "⚖️ <b>Pengesahan " + labelJenis(b.jenis) + "</b> — Undian: <b>MERAH " + kiraUndi(b, "merah") + " | BIRU " + kiraUndi(b, "biru") + " | TIADA " + kiraUndi(b, "tiada") + "</b>";
     }
   } else { st.classList.remove("aktif"); st.textContent = "Tiada bantahan aktif."; }
   el("btnBantahan").disabled = !!b;
@@ -1082,7 +1097,6 @@ function wire(){
   el("btnBantahan").addEventListener("click", function(){ if(state.bantahan){ return; } markModalSeg(); bukaModal("modalBantahan"); });
   el("btnTambah").addEventListener("click", function(){ renderSemua(); bukaModal("modalTambah"); });
   el("segJenis").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ modalJenis = b.getAttribute("data-bjenis"); markModalSeg(); }); });
-  el("segSisi").querySelectorAll("button").forEach(function(b){ b.addEventListener("click", function(){ modalSisi = b.getAttribute("data-bsisi"); markModalSeg(); }); });
   el("mMohon").addEventListener("click", mohonBantahan);
   el("btnBatalBantahan").addEventListener("click", function(){ tamatBantahan("⚖️ Bantahan dibatalkan oleh Ketua"); });
   el("btnSelesaiBantahan").addEventListener("click", function(){ tamatBantahan(null); });

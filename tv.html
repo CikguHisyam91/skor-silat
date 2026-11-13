@@ -81,7 +81,8 @@
   .o-votes span{padding:2vh 3vw;border-radius:2.4vh;box-shadow:var(--timbul)}
   .o-votes .ya{color:var(--ok)}.o-votes .tidak{color:var(--merah)}
   .o-res{font-size:14vh;font-weight:900}
-  .o-res.sah{color:var(--ok)}.o-res.tidak{color:var(--merah)}
+  .o-res{font-size:9vh;margin:2vh 0}
+  .o-res.km,.o-votes .km{color:var(--merah)}.o-res.kb,.o-votes .kb{color:var(--biru)}.o-res.kt,.o-votes .kt{color:var(--muted)}
   .start{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3vh;background:var(--bg)}
   .start button{border:none;background:var(--bg);color:var(--gold);border-radius:3vh;padding:3vh 5vw;font-size:3.4vh;font-weight:900;cursor:pointer;font-family:inherit;text-transform:uppercase;box-shadow:var(--timbul)}
   .start button:active{box-shadow:var(--tenggelam)}
@@ -165,6 +166,14 @@ function fbListen(p, onData, onStatus){
 function el(id){ return document.getElementById(id); }
 function setTxt(id, v){ var n = el(id); if(n){ n.textContent = v; } }
 function fmtMasa(s){ s = s || 0; var m = Math.floor(s / 60), ss = s % 60; return m + ":" + (ss < 10 ? "0" : "") + ss; }
+function teksKeputusan(b){
+  var j = labelJenis(b.jenis);
+  if(b.keputusan === "merah"){ return "🔴 " + j + " Sudut Merah ✔"; }
+  if(b.keputusan === "biru"){ return "🔵 " + j + " Sudut Biru ✔"; }
+  if(b.keputusan === "tiada"){ return "✖ Tiada " + j; }
+  return "Tiada keputusan (undi berbeza)";
+}
+function kelasKeputusan(k){ return k === "merah" ? "km" : (k === "biru" ? "kb" : "kt"); }
 function labelJenis(j){ return j === "pelanggaran" ? "Pelanggaran" : "Jatuhan"; }
 function labelSisi(s){ return s === "merah" ? "Merah" : "Biru"; }
 function ulangAnim(node, cls){ node.classList.remove(cls); void node.offsetWidth; node.classList.add(cls); }
@@ -239,13 +248,13 @@ function render(s){
   var ov = el("overlay"), b = s.bantahan;
   if(!b){ ov.classList.remove("show"); ov.innerHTML = ""; }
   else {
-    var u = b.undian || {}, ya = 0, tidak = 0;
-    ["j1","j2","j3"].forEach(function(j){ if(u[j] === "ya"){ ya++; } if(u[j] === "tidak"){ tidak++; } });
+    var u = b.undian || {}, km = 0, kb = 0, kt = 0;
+    ["j1","j2","j3"].forEach(function(j){ if(u[j] === "merah"){ km++; } if(u[j] === "biru"){ kb++; } if(u[j] === "tiada"){ kt++; } });
     if(b.keputusan){
-      ov.innerHTML = "<div class=\"o-eye\">Keputusan Pengesahan</div><div class=\"o-title\">" + labelJenis(b.jenis) + " — Sudut " + labelSisi(b.sisi) + "</div><div class=\"o-res " + (b.keputusan === "sah" ? "sah" : "tidak") + "\">" + (b.keputusan === "sah" ? "✔ SAH" : "✘ TIDAK SAH") + "</div>";
-      if(!p.bantahan || !p.bantahan.keputusan){ beep(b.keputusan === "sah" ? 880 : 300, 0.3); }
+      ov.innerHTML = "<div class=\"o-eye\">Keputusan Pengesahan " + labelJenis(b.jenis) + "</div><div class=\"o-res " + kelasKeputusan(b.keputusan) + "\">" + teksKeputusan(b) + "</div><div class=\"o-sub\">🔴 " + km + " • 🔵 " + kb + " • ✖ " + kt + "</div>";
+      if(!p.bantahan || !p.bantahan.keputusan){ beep(b.keputusan === "merah" || b.keputusan === "biru" ? 880 : 300, 0.3); }
     } else {
-      ov.innerHTML = "<div class=\"o-eye\">Bantahan Jurulatih</div><div class=\"o-title\">Pengesahan " + labelJenis(b.jenis) + "<br>Sudut " + labelSisi(b.sisi) + "</div><div class=\"o-sub\">Menunggu undian juri…</div><div class=\"o-votes\"><span class=\"ya\">✔ YA: " + ya + "</span><span class=\"tidak\">✘ TIDAK: " + tidak + "</span></div>";
+      ov.innerHTML = "<div class=\"o-eye\">Bantahan Jurulatih</div><div class=\"o-title\">Pengesahan " + labelJenis(b.jenis) + "</div><div class=\"o-sub\">Menunggu undian juri…</div><div class=\"o-votes\"><span class=\"km\">🔴 Merah: " + km + "</span><span class=\"kb\">🔵 Biru: " + kb + "</span><span class=\"kt\">✖ Tiada: " + kt + "</span></div>";
     }
     ov.classList.add("show");
   }

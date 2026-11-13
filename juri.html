@@ -60,7 +60,16 @@
   .yn button:active{box-shadow:var(--tenggelam)}
   .yn .ya{color:var(--ok)}.yn .tidak{color:var(--merah)}
   .yn button.sel{box-shadow:var(--tenggelam),0 0 0 3px var(--gold)}
+  .pilih3{display:flex;flex-direction:column;gap:16px;width:100%;max-width:520px}
+  .opt{border:none;background:var(--bg);border-radius:22px;padding:24px 12px;font-weight:900;font-size:18px;cursor:pointer;box-shadow:var(--timbul);display:flex;align-items:center;justify-content:center;gap:10px}
+  .opt:active{box-shadow:var(--tenggelam)}
+  .opt .dot{width:16px;height:16px;border-radius:50%}
+  .opt.m{color:var(--merah)}.opt.m .dot{background:var(--merah)}
+  .opt.b{color:var(--biru)}.opt.b .dot{background:var(--biru)}
+  .opt.t{color:var(--muted)}
+  .opt.sel{box-shadow:var(--tenggelam),0 0 0 3px var(--gold)}
   .res{font-size:44px;font-weight:900}
+  .res.km{color:var(--merah)}.res.kb{color:var(--biru)}.res.kt{color:var(--muted)}
   .res.sah{color:var(--ok)}.res.tidak{color:var(--merah)}
   .pick{display:grid;gap:16px;width:100%;max-width:360px}
   .pick button{border:none;background:var(--bg);color:var(--gold);border-radius:20px;padding:24px;font-size:24px;font-weight:900;cursor:pointer;box-shadow:var(--timbul)}
@@ -113,8 +122,12 @@
   <div class="panel hide" id="vBantahan">
     <div class="eyebrow">Bantahan Jurulatih</div>
     <div class="big" id="bTajuk">Pengesahan</div>
-    <div class="sub">Adakah ia sah?</div>
-    <div class="yn"><button class="ya" data-bvote="ya">✔ YA<br>SAH</button><button class="tidak" data-bvote="tidak">✘ TIDAK<br>TAK SAH</button></div>
+    <div class="sub">Pilih satu. Boleh tukar sebelum keputusan.</div>
+    <div class="pilih3">
+      <button class="opt m" data-bvote="merah"><span class="dot"></span><span id="bOptM">Sudut Merah</span></button>
+      <button class="opt b" data-bvote="biru"><span class="dot"></span><span id="bOptB">Sudut Biru</span></button>
+      <button class="opt t" data-bvote="tiada">✖ <span id="bOptT">Tiada</span></button>
+    </div>
     <div class="sub" id="bUndian"></div>
   </div>
 
@@ -187,6 +200,14 @@ function fbListen(p, onData, onStatus){
 function el(id){ return document.getElementById(id); }
 function setTxt(id, v){ var n = el(id); if(n){ n.textContent = v; } }
 function genId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function teksKeputusan(b){
+  var j = labelJenis(b.jenis);
+  if(b.keputusan === "merah"){ return "🔴 " + j + " Sudut Merah ✔"; }
+  if(b.keputusan === "biru"){ return "🔵 " + j + " Sudut Biru ✔"; }
+  if(b.keputusan === "tiada"){ return "✖ Tiada " + j; }
+  return "Tiada keputusan (undi berbeza)";
+}
+function kelasKeputusan(k){ return k === "merah" ? "km" : (k === "biru" ? "kb" : "kt"); }
 function labelJenis(j){ return j === "pelanggaran" ? "Pelanggaran" : "Jatuhan"; }
 function labelSisi(s){ return s === "merah" ? "Merah" : "Biru"; }
 function getar(ms){ try{ if(navigator.vibrate){ navigator.vibrate(ms); } }catch(e){} }
@@ -299,15 +320,16 @@ function render(){
     setTxt("tPemenang", "🏆 Sudut " + labelSisi(state.pemenang) + " Menang");
     tunjuk("vTamat");
   } else if(b && b.keputusan){
-    setTxt("kTajuk", labelJenis(b.jenis) + " — Sudut " + labelSisi(b.sisi));
-    var r = el("kRes"); r.textContent = b.keputusan === "sah" ? "✔ SAH" : "✘ TIDAK SAH";
-    r.className = "res " + (b.keputusan === "sah" ? "sah" : "tidak");
+    setTxt("kTajuk", "Pengesahan " + labelJenis(b.jenis));
+    var r = el("kRes"); r.textContent = teksKeputusan(b);
+    r.className = "res " + kelasKeputusan(b.keputusan);
     tunjuk("vKeputusan");
   } else if(b){
-    setTxt("bTajuk", "Pengesahan " + labelJenis(b.jenis) + " — Sudut " + labelSisi(b.sisi));
+    setTxt("bTajuk", "Pengesahan " + labelJenis(b.jenis));
+    setTxt("bOptM", labelJenis(b.jenis) + " Sudut Merah"); setTxt("bOptB", labelJenis(b.jenis) + " Sudut Biru"); setTxt("bOptT", "Tiada " + labelJenis(b.jenis));
     var pilihan = undiBantahan[b.id];
     document.querySelectorAll("[data-bvote]").forEach(function(x){ x.classList.toggle("sel", x.getAttribute("data-bvote") === pilihan); });
-    setTxt("bUndian", pilihan ? "Undian anda: " + (pilihan === "ya" ? "YA" : "TIDAK") + " (boleh tukar sebelum keputusan)" : "Sila undi.");
+    setTxt("bUndian", pilihan ? "Undian anda: " + (pilihan === "merah" ? "Sudut Merah" : (pilihan === "biru" ? "Sudut Biru" : "Tiada")) : "Sila undi.");
     tunjuk("vBantahan");
   } else {
     tunjuk("vMarkah");
