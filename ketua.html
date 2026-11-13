@@ -193,6 +193,7 @@
     <div class="tema-togol"><button data-tema-pilih="siang">☀️ Siang</button><button data-tema-pilih="malam">🌙 Malam</button></div>
     <div class="conn" id="modKejBadge"></div>
     <div class="conn" id="arkibStatus" style="display:none"></div>
+    <div class="conn" id="kejStatus" style="display:none"></div>
     <div class="kerusi" id="kerusiBox"><span>J1</span><span>J2</span><span>J3</span></div>
     <div class="conn" id="conn"><i></i><span id="connTxt">Menyambung…</span></div>
   </div>
@@ -293,6 +294,17 @@
   <div class="tg-st" id="kejInfo"></div>
   <div id="jdPratonton"></div>
 
+  <div class="modal-label" style="margin-top:22px;color:var(--gold)">🏟️ Sistem Kejohanan (automatik)</div>
+  <div class="modal-desc">Ambil jadual terus dari Sistem Pengurusan Kejohanan (ikut nombor Jadual Induk), dan hantar keputusan terus ke Carta selepas tekan 🏆 Menang. Perlukan <b>PIN Ketua</b>.</div>
+  <div class="modal-label">URL Web App Sistem Kejohanan</div>
+  <input class="inp" id="kejUrl" placeholder="https://script.google.com/macros/s/.../exec">
+  <div class="modal-label">PIN Ketua</div>
+  <input class="inp" id="kejPin" type="password" inputmode="numeric" placeholder="PIN khas Ketua Pertandingan">
+  <div class="modal-label">Gelanggang</div>
+  <div class="inp2"><select class="inp" id="kejGel"><option value="1">Gelanggang 1</option><option value="2">Gelanggang 2</option></select><select class="inp" id="kejBil"><option value="1">Jumlah: 1 gelanggang</option><option value="2">Jumlah: 2 gelanggang</option></select></div>
+  <div class="modal-act"><button class="jd-btn" id="kejUji">🔌 Uji Sambungan</button><button class="m-ok" id="kejAmbil">📥 Ambil Jadual</button></div>
+  <div class="tg-st" id="kejStatusModal"></div>
+
   <div class="modal-label" style="margin-top:22px;color:var(--gold)">✈️ Makluman Telegram (percuma)</div>
   <div class="modal-desc">1) Dalam Telegram cari <b>@BotFather</b> → taip <b>/newbot</b> → salin token.<br>2) Masukkan bot ke kumpulan Telegram anda, kemudian hantar apa-apa mesej dalam kumpulan itu.<br>3) Tampal token di bawah → tekan <b>Cari Chat ID</b> → <b>Uji Hantar</b>.<br>Token disimpan dalam laptop ini sahaja.</div>
   <div class="modal-label">Token Bot</div>
@@ -309,6 +321,16 @@
   <input class="inp" id="arkibUrl" placeholder="https://script.google.com/macros/s/.../exec">
   <div class="modal-act"><button class="jd-btn" id="arkibUji">🔌 Uji Sambungan</button><button class="m-ok" id="arkibSimpan">Simpan</button></div>
   <div class="tg-st" id="arkibStatusModal"></div>
+</div></div>
+
+<div class="modal" id="modalKej"><div class="modal-box">
+  <div class="modal-head"><div class="modal-title">🏟️ Hantar ke Sistem Kejohanan</div><button class="modal-x" id="kejX">✕</button></div>
+  <div class="modal-desc" id="kejKepDesc"></div>
+  <div class="modal-label">Jenis Kemenangan (wajib pilih)</div>
+  <div class="modal-seg" id="segKejJenis" style="flex-wrap:wrap"></div>
+  <div class="modal-label">Skor (pemenang – kalah)</div>
+  <input class="inp" id="kejSkor" placeholder="cth 12-8">
+  <div class="modal-act"><button class="m-batal" id="kejJangan">Jangan hantar</button><button class="m-ok" id="kejHantar">✅ Hantar Keputusan</button></div>
 </div></div>
 
 <div class="modal" id="modalTambah"><div class="modal-box">
@@ -578,6 +600,7 @@ function pilihPemenang(sisi){
     tandaSelesai(state.noPerlawanan);
     tgKeputusan(sisi);
     arkibKeputusan(sisi);
+    kejMintaHantar(sisi);
   } else {
     tambahLog("🧪 Mod Simulasi — keputusan tidak direkod");
   }
@@ -746,7 +769,7 @@ function bukaJadual(){
   el("jdTeks").value = teksJadual(); renderPratonton();
   var t = bacaLS("tg", {}); el("tgToken").value = t.token || ""; el("tgChat").value = t.chat || ""; el("tgAktif").checked = !!t.aktif;
   setTxt("tgStatus", "");
-  el("arkibUrl").value = arkibUrl(); setTxt("arkibStatusModal", ""); renderModKej();
+  el("arkibUrl").value = arkibUrl(); setTxt("arkibStatusModal", ""); renderModKej(); kejIsiModal();
   bukaModal("modalJadual");
 }
 function simpanJadual(){
@@ -894,6 +917,109 @@ function arkibUjiSambungan(){
   }).catch(function(){
     setTxt("arkibStatusModal", "✘ Gagal sambung. Pastikan Deploy sebagai Web app, Execute as: Me, Who has access: Anyone.");
   });
+}
+
+
+/* ================== SISTEM KEJOHANAN (jadual + keputusan automatik) ================== */
+var KEJ_URL_ASAL = "https://script.google.com/macros/s/AKfycbygqx3wrp8dXwFcDHVhzU2iGd-eOxACEzNH5lBuJyZTrdZOVVIB_cSgEx27c1YoQ0w/exec";
+var kejMap = bacaLS("kejMap", {}), kejJenis = bacaLS("kejJenis", [["MA","Menang Angka"],["MM","Menang Mutlak"],["MT","Menang Teknik"],["UD","Undur Diri"],["WMP","Wasit Berhentikan"]]);
+var kejPending = null, kejSibuk = false, kejOk = false;
+function kejCfg(){ var c = bacaLS("kejCfg", {}) || {}; return { url:String(c.url || KEJ_URL_ASAL).trim(), pin:String(c.pin || "").trim(), gel:Number(c.gel) || 1, bil:Number(c.bil) || 1 }; }
+function kejGilir(){ var g = bacaLS("kejGilir", []); return Array.isArray(g) ? g : []; }
+function kejApi(fn, args){
+  var c = kejCfg();
+  return fetch(c.url, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body:JSON.stringify({ fn:fn, args:args }) })
+    .then(function(r){ return r.json(); })
+    .then(function(j){ if(j && j.__ok){ return j.data; } var e = new Error((j && j.__err) || "Jawapan pelayan tidak sah."); e.pelayan = true; throw e; });
+}
+function kejSimpanCfg(){
+  var u = el("kejUrl").value.trim();
+  if(u && !/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)){ setTxt("kejStatusModal", "⚠ URL mesti bermula https://script.google.com/ dan berakhir dengan /exec"); return false; }
+  tulisLS("kejCfg", { url:u || KEJ_URL_ASAL, pin:el("kejPin").value.trim(), gel:el("kejGel").value, bil:el("kejBil").value });
+  renderKej(); return true;
+}
+function kejIsiModal(){ var c = kejCfg(); el("kejUrl").value = c.url; el("kejPin").value = c.pin; el("kejGel").value = String(c.gel); el("kejBil").value = String(c.bil); setTxt("kejStatusModal", ""); }
+function kejUji(){
+  if(!kejSimpanCfg()){ return; }
+  setTxt("kejStatusModal", "Menguji…");
+  kejApi("api_gel_ping", [kejCfg().pin]).then(function(d){ setTxt("kejStatusModal", d && d.ok ? "✓ " + d.msg : "✘ " + ((d && d.msg) || "PIN Ketua salah.")); })
+    .catch(function(e){ setTxt("kejStatusModal", e.pelayan ? "✘ " + e.message + " (Pastikan Undian.gs & Admin.gs terkini sudah di-Deploy.)" : "✘ Gagal sambung. Semak internet & URL."); });
+}
+function kejLabel(l){ if(!l){ return "—"; } if(l.pesilat){ return l.pesilat; } if(l.pemenang){ return "⏳ Pemenang #" + l.pemenang; } return "—"; }
+function kejAmbil(senyap){
+  if(!senyap && !kejSimpanCfg()){ return Promise.resolve(); }
+  var c = kejCfg();
+  if(!c.pin){ if(!senyap){ setTxt("kejStatusModal", "⚠ Masukkan PIN Ketua dahulu."); } return Promise.resolve(); }
+  if(!senyap){ setTxt("kejStatusModal", "Mengambil jadual…"); }
+  return kejApi("api_gel_jadual", [c.pin, c.gel, c.bil]).then(function(d){
+    if(!d || !d.ok){ if(!senyap){ setTxt("kejStatusModal", "✘ " + ((d && d.msg) || "Gagal.")); } return; }
+    kejMap = {}; kejJenis = d.jenis || kejJenis;
+    var sedia = 0;
+    jadual = (d.rows || []).map(function(x){
+      kejMap[String(x.no)] = { katId:x.katId, r:x.r, idx:x.idx, status:x.status };
+      if(x.status === "selesai"){ tandaSelesai(x.no); }
+      if(x.status === "sedia"){ sedia++; }
+      return { no:String(x.no), kategori:x.kategori, kelas:x.peringkat,
+        merah:x.merah ? x.merah.pesilat + (x.merah.dq ? " (DQ)" : "") : kejLabel(x.merahLabel), pasMerah:x.merah ? x.merah.pasukan : "",
+        biru:x.biru ? x.biru.pesilat + (x.biru.dq ? " (DQ)" : "") : kejLabel(x.biruLabel), pasBiru:x.biru ? x.biru.pasukan : "" };
+    });
+    tulisLS("kejMap", kejMap); tulisLS("kejJenis", kejJenis); tulisLS("jadual", jadual);
+    fbReq("PUT", "/jadual", jadual).catch(function(){});
+    if(el("modalJadual").classList.contains("show")){ el("jdTeks").value = teksJadual(); renderPratonton(); }
+    // kemas kini nama perlawanan semasa jika belum ada markah/pemenang
+    var j = jadual[cariIdxJadual(state.noPerlawanan)];
+    if(j && !state.pemenang && !state.skorMerah && !state.skorBiru && (state.namaMerah !== j.merah || state.namaBiru !== j.biru)){ isiStateDariJadual(state, j); renderSemua(); simpanState(); }
+    kejOk = true; renderKej();
+    if(!senyap){ setTxt("kejStatusModal", "✓ " + jadual.length + " perlawanan diambil" + (c.bil > 1 ? " (Gelanggang " + c.gel + ")" : "") + " • " + sedia + " sedia bertanding."); toast("📥 Jadual dikemas kini dari Sistem Kejohanan"); }
+  }).catch(function(e){ if(!senyap){ setTxt("kejStatusModal", e.pelayan ? "✘ " + e.message : "✘ Gagal sambung. Semak internet & URL."); } });
+}
+function kejMintaHantar(sisi){
+  var m = kejMap[String(state.noPerlawanan)];
+  if(!m || !kejCfg().pin){ return; }
+  var nama = sisi === "merah" ? state.namaMerah : state.namaBiru;
+  var sw = sisi === "merah" ? state.skorMerah : state.skorBiru, sl = sisi === "merah" ? state.skorBiru : state.skorMerah;
+  kejPending = { no:String(state.noPerlawanan), katId:m.katId, r:m.r, idx:m.idx, sisi:sisi, nama:String(nama || "").replace(/ \(DQ\)$/, ""), jenis:"", skor:sw + "-" + sl };
+  el("kejKepDesc").innerHTML = "Perlawanan <b>#" + escHtml(kejPending.no) + "</b> — Pemenang: <b>" + (sisi === "merah" ? "🔴 " : "🔵 ") + escHtml(kejPending.nama) + "</b>.<br>Pilih jenis kemenangan, kemudian tekan Hantar. Carta akan dikemas kini serta-merta.";
+  el("segKejJenis").innerHTML = kejJenis.map(function(j){ return "<button data-kjenis=\"" + escHtml(j[0]) + "\">" + escHtml(j[0]) + " — " + escHtml(j[1]) + "</button>"; }).join("");
+  el("kejSkor").value = kejPending.skor;
+  bukaModal("modalKej");
+}
+function kejPilihJenis(j){ if(!kejPending){ return; } kejPending.jenis = j; el("segKejJenis").querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-kjenis") === j); }); }
+function kejHantar(){
+  if(!kejPending){ tutupModal("modalKej"); return; }
+  if(!kejPending.jenis){ toast("⚠ Pilih jenis kemenangan dahulu."); return; }
+  kejPending.skor = el("kejSkor").value.trim();
+  var it = kejPending; kejPending = null;
+  var g = kejGilir().filter(function(x){ return String(x.no) !== String(it.no); }); g.push(it); tulisLS("kejGilir", g);
+  tutupModal("modalKej"); renderKej(); hantarGilirKej();
+}
+function kejJangan(){
+  if(kejPending){ tambahLog("🏟️ Keputusan #" + escHtml(kejPending.no) + " TIDAK dihantar ke Sistem Kejohanan"); kejPending = null; }
+  tutupModal("modalKej"); renderLog(); simpanLog();
+}
+function hantarGilirKej(){
+  var g = kejGilir(), c = kejCfg();
+  if(kejSibuk || !g.length || !c.pin){ renderKej(); return; }
+  kejSibuk = true;
+  var it = g[0];
+  function buang(){ tulisLS("kejGilir", kejGilir().filter(function(x){ return !(String(x.no) === String(it.no) && x.jenis === it.jenis && x.sisi === it.sisi); })); }
+  kejApi("api_gel_simpan", [c.pin, it.katId, it.r, it.idx, it.sisi, it.jenis, it.skor, it.nama]).then(function(d){
+    buang(); kejSibuk = false;
+    if(d && d.ok){ kejOk = true; tambahLog("🏟️ Keputusan #" + escHtml(it.no) + " masuk ke Carta (" + escHtml(it.jenis) + ")"); toast("🏟️ Keputusan #" + it.no + " dihantar ke Sistem Kejohanan"); kejAmbil(true); }
+    else { kejOk = false; tambahLog("⚠️ Sistem Kejohanan menolak #" + escHtml(it.no) + ": " + escHtml((d && d.msg) || "")); alert("⚠️ Keputusan #" + it.no + " TIDAK masuk ke Sistem Kejohanan:\n\n" + ((d && d.msg) || "Ralat tidak diketahui") + "\n\nSila semak, atau masukkan di Pusat Kawalan."); }
+    renderLog(); simpanLog(); renderKej(); hantarGilirKej();
+  }, function(e){
+    kejSibuk = false; kejOk = false;
+    if(e && e.pelayan){ buang(); alert("⚠️ Keputusan #" + it.no + " TIDAK masuk ke Sistem Kejohanan:\n\n" + e.message); hantarGilirKej(); }
+    renderKej();
+  });
+}
+function renderKej(){
+  var n = el("kejStatus"); if(!n){ return; }
+  if(!kejCfg().pin){ n.style.display = "none"; return; }
+  n.style.display = "";
+  var bil = kejGilir().length;
+  n.textContent = bil ? "⏳ Kejohanan (" + bil + ")" : (kejOk ? "🏟️ Kejohanan ✓" : "🏟️ Kejohanan");
 }
 
 /* ================== MOD KEJOHANAN ================== */
@@ -1084,6 +1210,13 @@ function wire(){
   el("tgUji").addEventListener("click", tgUji);
   el("arkibSimpan").addEventListener("click", arkibSimpanUrl);
   el("arkibUji").addEventListener("click", arkibUjiSambungan);
+  el("kejUji").addEventListener("click", kejUji);
+  el("kejAmbil").addEventListener("click", function(){ kejAmbil(false); });
+  el("kejHantar").addEventListener("click", kejHantar);
+  el("kejJangan").addEventListener("click", kejJangan);
+  el("kejX").addEventListener("click", kejJangan);
+  el("segKejJenis").addEventListener("click", function(e){ var b = e.target.closest("[data-kjenis]"); if(b){ kejPilihJenis(b.getAttribute("data-kjenis")); } });
+  window.addEventListener("online", hantarGilirKej);
   setTema(document.documentElement.getAttribute("data-tema") || "siang");
   document.querySelectorAll("[data-tema-pilih]").forEach(function(b){ b.addEventListener("click", function(){ setTema(b.getAttribute("data-tema-pilih")); }); });
   ["hukM", "hukB"].forEach(function(id){ el(id).addEventListener("click", function(e){
@@ -1131,6 +1264,7 @@ setInterval(function(){
 setInterval(renderKerusi, 3000);
 setInterval(syncClock, 60000);
 setInterval(hantarGilirArkib, 30000);
+setInterval(hantarGilirKej, 30000);
 
 /* ================== MULA ================== */
 function puncaFirebase(e){
@@ -1143,7 +1277,7 @@ function puncaFirebase(e){
 }
 var cubaSambung = 0;
 function mula(){
-  wire(); renderSemua(); renderLog(); renderKerusi(); renderArkib(); renderModKej(); hantarGilirArkib();
+  wire(); renderSemua(); renderLog(); renderKerusi(); renderArkib(); renderModKej(); hantarGilirArkib(); renderKej(); hantarGilirKej();
   muatkanKonsol(); setTimeout(muatkanKonsol, 500);
   sambung();
 }
