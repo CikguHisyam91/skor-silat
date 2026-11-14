@@ -499,6 +499,12 @@ function terimaUndi(id, v){
   if(v.pid !== state.pid || state.pemenang || state.bantahan || !sesiSah(v.juri, v.sesi) || umur > WINDOW_MS + GRACE_MS){
     buangUndi(id); return;
   }
+  if(!state.masaJalan){
+    // Masa belum mula / dihentikan: ujian fon juri sahaja, poin tidak dikira
+    buangUndi(id);
+    tambahLog("🧪 Ujian <b>" + v.juri.toUpperCase() + "</b>: " + v.sisi.toUpperCase() + " " + (v.poin === "tangan" ? "Tangan" : "Kaki") + " — masa belum berjalan, tidak dikira");
+    return;
+  }
   var key = v.sisi + "|" + v.poin;
   var lm = lastMatch[key];
   if(lm && Math.abs(v.t - lm.t) <= WINDOW_MS && lm.juri.indexOf(v.juri) === -1){

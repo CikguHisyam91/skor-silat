@@ -288,7 +288,7 @@ function hantarQueue(){
   fbReq("PUT", "/votes/" + item.id, item.v).then(function(){
     queue.shift();
     var jenis = item.v.poin === "tangan" ? "Tangan +1" : "Kaki +2";
-    el("foot").innerHTML = "<b>✓ Dihantar:</b> " + labelSisi(item.v.sisi) + " " + jenis;
+    el("foot").innerHTML = (state && !state.masaJalan ? "<b>🧪 Ujian diterima KP:</b> " : "<b>✓ Dihantar:</b> ") + labelSisi(item.v.sisi) + " " + jenis + (state && !state.masaJalan ? " (masa belum mula, tidak dikira)" : "");
     hantarBusy = false; hantarQueue();
   }).catch(function(){
     item.cuba++;
