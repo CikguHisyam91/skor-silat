@@ -101,7 +101,13 @@
   .kbtn.jatuh{grid-column:1/3;color:var(--ok);font-size:14px;padding:13px}
   .kbtn.huk{color:var(--merah);width:100%}
   .huk-sel{position:relative;display:grid}
-  .jat-sel{grid-column:1/3}.jat-sel .kbtn.jatuh{width:100%}
+  .jat-sel{grid-column:1/3}
+  .statistik{border-radius:14px;box-shadow:var(--tenggelam);padding:8px 12px;margin:2px 0 10px;font-size:12px;font-weight:800}
+  .st-h{font-size:9.5px;letter-spacing:.16em;color:var(--muted);text-align:center;margin-bottom:4px}
+  .st-r{display:flex;justify-content:space-between;align-items:center;padding:3px 2px;color:var(--muted)}
+  .st-r b{font-size:15px;color:var(--ink);min-width:28px;text-align:right}
+  .st-r.unggul b{color:var(--ok)}
+  .st-r.unggul span{color:var(--ink)}.jat-sel .kbtn.jatuh{width:100%}
   .undo{position:absolute;top:-7px;right:-7px;min-width:26px;height:26px;padding:0 6px;border:none;border-radius:999px;background:var(--gold);color:#2b2100;font-weight:900;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;box-shadow:var(--timbul-k);z-index:2}
   .undo span{font-size:10px}
   .undo:disabled{display:none}
@@ -231,6 +237,13 @@
         <div class="mini-label">Hukuman</div>
         <div class="krow"><div class="huk-sel"><button class="kbtn huk" data-huk="merah|-1">−1 Ringan</button><button class="undo" data-undo-huk="merah|-1" title="Undo hukuman -1 terakhir" disabled>↩<span></span></button></div><div class="huk-sel"><button class="kbtn huk" data-huk="merah|-2">−2 Sederhana</button><button class="undo" data-undo-huk="merah|-2" title="Undo hukuman -2 terakhir" disabled>↩<span></span></button></div></div>
         <div class="krow"><div class="huk-sel"><button class="kbtn huk" data-huk="merah|-5">−5 Berat 1</button><button class="undo" data-undo-huk="merah|-5" title="Undo hukuman -5 terakhir" disabled>↩<span></span></button></div><div class="huk-sel"><button class="kbtn huk" data-huk="merah|-10">−10 Berat 2</button><button class="undo" data-undo-huk="merah|-10" title="Undo hukuman -10 terakhir" disabled>↩<span></span></button></div></div>
+        <div class="statistik" id="statM">
+          <div class="st-h">📊 Statistik (rujukan jika seri)</div>
+          <div class="st-r" data-st="jat"><span>🤼 Jatuhan</span><b>0</b></div>
+          <div class="st-r" data-st="tangan"><span>✊ Tangan</span><b>0</b></div>
+          <div class="st-r" data-st="kaki"><span>🦵 Tendangan</span><b>0</b></div>
+          <div class="st-r" data-st="huk"><span>⚠️ Jumlah penolakan</span><b>0</b></div>
+        </div>
         <div class="krow"><button class="kbtn win" data-win="merah">🏆 Sudut Merah Menang</button></div>
       </div>
 
@@ -257,6 +270,13 @@
         <div class="mini-label">Hukuman</div>
         <div class="krow"><div class="huk-sel"><button class="kbtn huk" data-huk="biru|-1">−1 Ringan</button><button class="undo" data-undo-huk="biru|-1" title="Undo hukuman -1 terakhir" disabled>↩<span></span></button></div><div class="huk-sel"><button class="kbtn huk" data-huk="biru|-2">−2 Sederhana</button><button class="undo" data-undo-huk="biru|-2" title="Undo hukuman -2 terakhir" disabled>↩<span></span></button></div></div>
         <div class="krow"><div class="huk-sel"><button class="kbtn huk" data-huk="biru|-5">−5 Berat 1</button><button class="undo" data-undo-huk="biru|-5" title="Undo hukuman -5 terakhir" disabled>↩<span></span></button></div><div class="huk-sel"><button class="kbtn huk" data-huk="biru|-10">−10 Berat 2</button><button class="undo" data-undo-huk="biru|-10" title="Undo hukuman -10 terakhir" disabled>↩<span></span></button></div></div>
+        <div class="statistik" id="statB">
+          <div class="st-h">📊 Statistik (rujukan jika seri)</div>
+          <div class="st-r" data-st="jat"><span>🤼 Jatuhan</span><b>0</b></div>
+          <div class="st-r" data-st="tangan"><span>✊ Tangan</span><b>0</b></div>
+          <div class="st-r" data-st="kaki"><span>🦵 Tendangan</span><b>0</b></div>
+          <div class="st-r" data-st="huk"><span>⚠️ Jumlah penolakan</span><b>0</b></div>
+        </div>
         <div class="krow"><button class="kbtn win" data-win="biru">🏆 Sudut Biru Menang</button></div>
       </div>
 
@@ -450,7 +470,7 @@ function stateBaru(no){
   return { pid:genId(), noPerlawanan:no || "1", namaMerah:"Pesilat Merah", namaBiru:"Pesilat Biru",
     pasukanMerah:"", pasukanBiru:"", kategori:"", kelas:"", tgMula:false,
     skorMerah:0, skorBiru:0, babak:1, jumlahBabak:3, masaSet:120, masaBaki:120,
-    masaJalan:false, masaTamat:false, pemenang:null, bantahan:null, hukMerah:[], hukBiru:[], jatMerah:[], jatBiru:[], modSkor:"23", tvNotis:null, flash:null };
+    masaJalan:false, masaTamat:false, pemenang:null, bantahan:null, hukMerah:[], hukBiru:[], jatMerah:[], jatBiru:[], kiraan:{ merah:{ tangan:0, kaki:0 }, biru:{ tangan:0, kaki:0 } }, modSkor:"23", tvNotis:null, flash:null };
 }
 var state = stateBaru();
 var logList = [];
@@ -546,6 +566,7 @@ function sahkanPadanan(ida, idb, key){
 function beriMata(sisi, poin, nama){
   var nilai = poin === "tangan" ? 1 : 2;
   if(sisi === "merah"){ state.skorMerah += nilai; } else { state.skorBiru += nilai; }
+  var k = kiraan(); k[sisi][poin] = (Number(k[sisi][poin]) || 0) + 1; state.kiraan = k;
   state.flash = { id:genId(), sisi:sisi };
   tambahLog("✅ <b>" + sisi.toUpperCase() + " +" + nilai + "</b> — " + (poin === "tangan" ? "Tangan" : "Kaki") + " disahkan (" + nama + ")");
   beep(880, 0.12); kesanPop(sisi); renderSemua(); simpanState();
@@ -612,12 +633,36 @@ function undoJatuhan(sisi){
   tambahLog("↩️ <b>" + sisi.toUpperCase() + " −3</b> — Jatuhan dibatalkan (Ketua)");
   renderSemua(); simpanState();
 }
+function kiraan(){
+  var k = state.kiraan || {};
+  ["merah", "biru"].forEach(function(s){ k[s] = k[s] || {}; k[s].tangan = Number(k[s].tangan) || 0; k[s].kaki = Number(k[s].kaki) || 0; });
+  return k;
+}
+function renderStatistik(){
+  var k = kiraan(), nilai = {};
+  ["merah", "biru"].forEach(function(s){
+    nilai[s] = {
+      jat:senaraiJat(s).length, tangan:k[s].tangan, kaki:k[s].kaki,
+      huk:senaraiHuk(s).reduce(function(j, h){ return j + Math.abs(Number(h.nilai) || 0); }, 0)
+    };
+  });
+  ["merah", "biru"].forEach(function(s){
+    var lawan = s === "merah" ? "biru" : "merah";
+    el(s === "merah" ? "statM" : "statB").querySelectorAll("[data-st]").forEach(function(row){
+      var key = row.getAttribute("data-st"), v = nilai[s][key], w = nilai[lawan][key];
+      row.querySelector("b").textContent = key === "huk" ? (v ? "−" + v : "0") : v;
+      // hijau = lebih baik daripada lawan (penolakan: lebih sedikit lebih baik)
+      row.classList.toggle("unggul", key === "huk" ? v < w : v > w);
+    });
+  });
+}
 function undoHuk(sisi, nilai){
   var senarai = senaraiHuk(sisi), akhir = null;
   senarai.forEach(function(h){ if(Number(h.nilai) === nilai){ akhir = h; } });
   if(akhir){ batalHukuman(sisi, akhir.id); }
 }
 function renderHuk(){
+  renderStatistik();
   document.querySelectorAll("[data-undo-jat]").forEach(function(b){
     var bil = senaraiJat(b.getAttribute("data-undo-jat")).length;
     b.disabled = bil === 0;
@@ -748,7 +793,7 @@ function setJumlahBabak(j){ state.jumlahBabak = j; if(state.babak > j){ state.ba
 /* ================== RESET ================== */
 function resetMarkah(){
   if(!confirm("Reset markah kedua-dua sudut kepada 0? Log juga akan dikosongkan.")){ return; }
-  state.skorMerah = 0; state.skorBiru = 0; state.pemenang = null; state.hukMerah = []; state.hukBiru = []; state.jatMerah = []; state.jatBiru = [];
+  state.skorMerah = 0; state.skorBiru = 0; state.pemenang = null; state.hukMerah = []; state.hukBiru = []; state.jatMerah = []; state.jatBiru = []; state.kiraan = { merah:{ tangan:0, kaki:0 }, biru:{ tangan:0, kaki:0 } };
   pending = {}; lastMatch = {};
   fbReq("DELETE", "/votes").catch(function(){});
   logList = []; renderLog(); simpanLog();
@@ -1308,13 +1353,26 @@ function setTema(t){
 
 /* ================== MUATKAN PANEL TENGAH (tanpa skrol) ================== */
 function muatkanKonsol(){
-  var isi = el("konsolIsi"), kotak = isi.parentNode;
-  isi.style.zoom = 1;
-  if(window.innerWidth <= 1000){ return; }
-  var gaya = getComputedStyle(kotak);
-  var ada = kotak.clientHeight - parseFloat(gaya.paddingTop) - parseFloat(gaya.paddingBottom);
-  var perlu = isi.offsetHeight;
-  if(perlu > ada && ada > 0){ isi.style.zoom = Math.max(0.55, (ada - 2) / perlu); }
+  // Panel tengah, Sudut Merah dan Sudut Biru mengecil sendiri supaya semua butang muat tanpa skrol
+  var senarai = [el("konsolIsi")];
+  document.querySelectorAll(".kcorner").forEach(function(k){
+    var isi = k.querySelector(":scope > .kotak-isi");
+    if(!isi){
+      isi = document.createElement("div"); isi.className = "kotak-isi";
+      while(k.firstChild){ isi.appendChild(k.firstChild); }
+      k.appendChild(isi);
+    }
+    senarai.push(isi);
+  });
+  senarai.forEach(function(isi){
+    var kotak = isi.parentNode;
+    isi.style.zoom = 1;
+    if(window.innerWidth <= 1000){ return; }
+    var gaya = getComputedStyle(kotak);
+    var ada = kotak.clientHeight - parseFloat(gaya.paddingTop) - parseFloat(gaya.paddingBottom);
+    var perlu = isi.offsetHeight;
+    if(perlu > ada && ada > 0){ isi.style.zoom = Math.max(0.55, (ada - 10) / perlu); }
+  });
 }
 window.addEventListener("resize", muatkanKonsol);
 
