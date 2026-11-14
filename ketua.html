@@ -928,9 +928,16 @@ function kejCfg(){ var c = bacaLS("kejCfg", {}) || {}; return { url:String(c.url
 function kejGilir(){ var g = bacaLS("kejGilir", []); return Array.isArray(g) ? g : []; }
 function kejApi(fn, args){
   var c = kejCfg();
-  return fetch(c.url, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body:JSON.stringify({ fn:fn, args:args }) })
-    .then(function(r){ return r.json(); })
-    .then(function(j){ if(j && j.__ok){ return j.data; } var e = new Error((j && j.__err) || "Jawapan pelayan tidak sah."); e.pelayan = true; throw e; });
+  var url = c.url + (c.url.indexOf("?") >= 0 ? "&" : "?") + "api=gel&fn=" + encodeURIComponent(fn) + "&args=" + encodeURIComponent(JSON.stringify(args)) + "&t=" + Date.now();
+  return fetch(url, { method:"GET", redirect:"follow", cache:"no-store" })
+    .then(function(r){ return r.text(); }, function(){ var e = new Error("Tiada sambungan internet / URL tidak dapat dicapai."); throw e; })
+    .then(function(t){
+      var j = null; try{ j = JSON.parse(t); }catch(x){}
+      if(!j){ var e = new Error(/accounts\.google|ServiceLogin|signin/i.test(t) ? "Web App minta log masuk Google. Semak Deploy: Who has access = Anyone." : "Sistem Kejohanan belum dikemas kini. Tampal Undian.gs & Portal.gs terbaru, kemudian Deploy → New version."); e.pelayan = true; throw e; }
+      if(j.__ok){ return j.data; }
+      if(j.ok !== undefined && !j.__err){ var e2 = new Error("Sistem Kejohanan belum dikemas kini. Tampal Undian.gs & Portal.gs terbaru, kemudian Deploy → New version."); e2.pelayan = true; throw e2; }
+      var e3 = new Error(j.__err || "Jawapan pelayan tidak sah."); e3.pelayan = true; throw e3;
+    });
 }
 function kejSimpanCfg(){
   var u = el("kejUrl").value.trim();
@@ -943,7 +950,7 @@ function kejUji(){
   if(!kejSimpanCfg()){ return; }
   setTxt("kejStatusModal", "Menguji…");
   kejApi("api_gel_ping", [kejCfg().pin]).then(function(d){ setTxt("kejStatusModal", d && d.ok ? "✓ " + d.msg : "✘ " + ((d && d.msg) || "PIN Ketua salah.")); })
-    .catch(function(e){ setTxt("kejStatusModal", e.pelayan ? "✘ " + e.message + " (Pastikan Undian.gs & Admin.gs terkini sudah di-Deploy.)" : "✘ Gagal sambung. Semak internet & URL."); });
+    .catch(function(e){ setTxt("kejStatusModal", "✘ " + e.message); });
 }
 function kejLabel(l){ if(!l){ return "—"; } if(l.pesilat){ return l.pesilat; } if(l.pemenang){ return "⏳ Pemenang #" + l.pemenang; } return "—"; }
 function kejAmbil(senyap){
@@ -971,7 +978,7 @@ function kejAmbil(senyap){
     if(j && !state.pemenang && !state.skorMerah && !state.skorBiru && (state.namaMerah !== j.merah || state.namaBiru !== j.biru)){ isiStateDariJadual(state, j); renderSemua(); simpanState(); }
     kejOk = true; renderKej();
     if(!senyap){ setTxt("kejStatusModal", "✓ " + jadual.length + " perlawanan diambil" + (c.bil > 1 ? " (Gelanggang " + c.gel + ")" : "") + " • " + sedia + " sedia bertanding."); toast("📥 Jadual dikemas kini dari Sistem Kejohanan"); }
-  }).catch(function(e){ if(!senyap){ setTxt("kejStatusModal", e.pelayan ? "✘ " + e.message : "✘ Gagal sambung. Semak internet & URL."); } });
+  }).catch(function(e){ if(!senyap){ setTxt("kejStatusModal", "✘ " + e.message); } });
 }
 function kejMintaHantar(sisi){
   var m = kejMap[String(state.noPerlawanan)];
