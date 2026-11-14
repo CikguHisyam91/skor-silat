@@ -99,7 +99,12 @@
   .krow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
   .kbtn{border-radius:12px;padding:12px 6px;font-size:13px}
   .kbtn.jatuh{grid-column:1/3;color:var(--ok);font-size:14px;padding:13px}
-  .kbtn.huk{color:var(--merah)}
+  .kbtn.huk{color:var(--merah);width:100%}
+  .huk-sel{position:relative;display:grid}
+  .undo{position:absolute;top:-7px;right:-7px;min-width:26px;height:26px;padding:0 6px;border:none;border-radius:999px;background:var(--gold);color:#2b2100;font-weight:900;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;box-shadow:var(--timbul-k);z-index:2}
+  .undo span{font-size:10px}
+  .undo:disabled{display:none}
+  .undo:active{transform:scale(.92)}
   .kbtn.win{grid-column:1/3;margin-top:4px;font-size:13px;letter-spacing:.08em;padding:13px;color:#fff}
   .kcorner.merah .kbtn.win{background:var(--merah)}
   .kcorner.biru .kbtn.win{background:var(--biru)}
@@ -223,8 +228,8 @@
         <h3><span class="dot merah"></span>Sudut Merah</h3>
         <div class="krow"><button class="kbtn jatuh" data-jatuh="merah">🤼 Jatuhan +3</button></div>
         <div class="mini-label">Hukuman</div>
-        <div class="krow"><button class="kbtn huk" data-huk="merah|-1">−1 Ringan</button><button class="kbtn huk" data-huk="merah|-2">−2 Sederhana</button></div>
-        <div class="krow"><button class="kbtn huk" data-huk="merah|-5">−5 Berat 1</button><button class="kbtn huk" data-huk="merah|-10">−10 Berat 2</button></div>
+        <div class="krow"><div class="huk-sel"><button class="kbtn huk" data-huk="merah|-1">−1 Ringan</button><button class="undo" data-undo-huk="merah|-1" title="Undo hukuman -1 terakhir" disabled>↩<span></span></button></div><div class="huk-sel"><button class="kbtn huk" data-huk="merah|-2">−2 Sederhana</button><button class="undo" data-undo-huk="merah|-2" title="Undo hukuman -2 terakhir" disabled>↩<span></span></button></div></div>
+        <div class="krow"><div class="huk-sel"><button class="kbtn huk" data-huk="merah|-5">−5 Berat 1</button><button class="undo" data-undo-huk="merah|-5" title="Undo hukuman -5 terakhir" disabled>↩<span></span></button></div><div class="huk-sel"><button class="kbtn huk" data-huk="merah|-10">−10 Berat 2</button><button class="undo" data-undo-huk="merah|-10" title="Undo hukuman -10 terakhir" disabled>↩<span></span></button></div></div>
         <div class="krow"><button class="kbtn win" data-win="merah">🏆 Sudut Merah Menang</button></div>
       </div>
 
@@ -249,8 +254,8 @@
         <h3><span class="dot biru"></span>Sudut Biru</h3>
         <div class="krow"><button class="kbtn jatuh" data-jatuh="biru">🤼 Jatuhan +3</button></div>
         <div class="mini-label">Hukuman</div>
-        <div class="krow"><button class="kbtn huk" data-huk="biru|-1">−1 Ringan</button><button class="kbtn huk" data-huk="biru|-2">−2 Sederhana</button></div>
-        <div class="krow"><button class="kbtn huk" data-huk="biru|-5">−5 Berat 1</button><button class="kbtn huk" data-huk="biru|-10">−10 Berat 2</button></div>
+        <div class="krow"><div class="huk-sel"><button class="kbtn huk" data-huk="biru|-1">−1 Ringan</button><button class="undo" data-undo-huk="biru|-1" title="Undo hukuman -1 terakhir" disabled>↩<span></span></button></div><div class="huk-sel"><button class="kbtn huk" data-huk="biru|-2">−2 Sederhana</button><button class="undo" data-undo-huk="biru|-2" title="Undo hukuman -2 terakhir" disabled>↩<span></span></button></div></div>
+        <div class="krow"><div class="huk-sel"><button class="kbtn huk" data-huk="biru|-5">−5 Berat 1</button><button class="undo" data-undo-huk="biru|-5" title="Undo hukuman -5 terakhir" disabled>↩<span></span></button></div><div class="huk-sel"><button class="kbtn huk" data-huk="biru|-10">−10 Berat 2</button><button class="undo" data-undo-huk="biru|-10" title="Undo hukuman -10 terakhir" disabled>↩<span></span></button></div></div>
         <div class="krow"><button class="kbtn win" data-win="biru">🏆 Sudut Biru Menang</button></div>
       </div>
 
@@ -576,7 +581,18 @@ function batalHukuman(sisi, id){
   tambahLog("↩️ <b>" + sisi.toUpperCase() + " +" + (h.tolak || 0) + "</b> — Hukuman " + h.nilai + " dibatalkan (Ketua)");
   renderSemua(); simpanState();
 }
+function undoHuk(sisi, nilai){
+  var senarai = senaraiHuk(sisi), akhir = null;
+  senarai.forEach(function(h){ if(Number(h.nilai) === nilai){ akhir = h; } });
+  if(akhir){ batalHukuman(sisi, akhir.id); }
+}
 function renderHuk(){
+  document.querySelectorAll("[data-undo-huk]").forEach(function(b){
+    var p = b.getAttribute("data-undo-huk").split("|"), nilai = parseInt(p[1], 10);
+    var bil = senaraiHuk(p[0]).filter(function(h){ return Number(h.nilai) === nilai; }).length;
+    b.disabled = bil === 0;
+    b.querySelector("span").textContent = bil > 1 ? "×" + bil : "";
+  });
   ["merah", "biru"].forEach(function(sisi){
     var kotak = el(sisi === "merah" ? "hukM" : "hukB");
     kotak.innerHTML = senaraiHuk(sisi).map(function(h){
@@ -1226,6 +1242,9 @@ function wire(){
   window.addEventListener("online", hantarGilirKej);
   setTema(document.documentElement.getAttribute("data-tema") || "siang");
   document.querySelectorAll("[data-tema-pilih]").forEach(function(b){ b.addEventListener("click", function(){ setTema(b.getAttribute("data-tema-pilih")); }); });
+  document.querySelectorAll("[data-undo-huk]").forEach(function(b){ b.addEventListener("click", function(){
+    var p = b.getAttribute("data-undo-huk").split("|"); undoHuk(p[0], parseInt(p[1], 10));
+  }); });
   ["hukM", "hukB"].forEach(function(id){ el(id).addEventListener("click", function(e){
     var b = e.target.closest("[data-batal-huk]"); if(!b){ return; }
     var p = b.getAttribute("data-batal-huk").split("|"); batalHukuman(p[0], p[1]);
