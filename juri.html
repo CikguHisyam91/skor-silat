@@ -157,7 +157,12 @@ function fbUrl(p){ return DB_URL + ROOT + p + ".json"; }
 function fbReq(method, p, data){
   var opt = { method: method };
   if(data !== undefined){ opt.body = JSON.stringify(data); }
-  return fetch(fbUrl(p), opt).then(function(r){ if(!r.ok){ throw new Error("HTTP " + r.status); } return r.json(); });
+  // Had masa 10 saat: jika rangkaian tergantung, gagal dan cuba semula (bukan tunggu selama-lamanya)
+  var ctl = window.AbortController ? new AbortController() : null;
+  if(ctl){ opt.signal = ctl.signal; }
+  var pemasa = setTimeout(function(){ if(ctl){ ctl.abort(); } }, 10000);
+  return fetch(fbUrl(p), opt).then(function(r){ clearTimeout(pemasa); if(!r.ok){ throw new Error("HTTP " + r.status); } return r.json(); },
+    function(e){ clearTimeout(pemasa); throw (e && e.name === "AbortError") ? new Error("TAMAT_MASA") : e; });
 }
 function setPath(obj, path, val){
   var parts = path.split("/").filter(function(x){ return x.length > 0; });
