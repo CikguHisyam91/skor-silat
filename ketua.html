@@ -972,10 +972,10 @@ function kejAmbil(senyap){
     });
     tulisLS("kejMap", kejMap); tulisLS("kejJenis", kejJenis); tulisLS("jadual", jadual);
     fbReq("PUT", "/jadual", jadual).catch(function(){});
-    if(el("modalJadual").classList.contains("show")){ el("jdTeks").value = teksJadual(); renderPratonton(); }
+    if(el("modalJadual").classList.contains("show") && !senyap){ el("jdTeks").value = teksJadual(); renderPratonton(); }
     // kemas kini nama perlawanan semasa jika belum ada markah/pemenang
     var j = jadual[cariIdxJadual(state.noPerlawanan)];
-    if(j && !state.pemenang && !state.skorMerah && !state.skorBiru && (state.namaMerah !== j.merah || state.namaBiru !== j.biru)){ isiStateDariJadual(state, j); renderSemua(); simpanState(); }
+    if(j && !state.pemenang && !state.masaJalan && !state.skorMerah && !state.skorBiru && (state.namaMerah !== j.merah || state.namaBiru !== j.biru)){ isiStateDariJadual(state, j); renderSemua(); simpanState(); }
     kejOk = true; renderKej();
     if(!senyap){ setTxt("kejStatusModal", "✓ " + jadual.length + " perlawanan diambil" + (c.bil > 1 ? " (Gelanggang " + c.gel + ")" : "") + " • " + sedia + " sedia bertanding."); toast("📥 Jadual dikemas kini dari Sistem Kejohanan"); }
   }).catch(function(e){ if(!senyap){ setTxt("kejStatusModal", "✘ " + e.message); } });
@@ -1272,6 +1272,13 @@ setInterval(renderKerusi, 3000);
 setInterval(syncClock, 60000);
 setInterval(hantarGilirArkib, 30000);
 setInterval(hantarGilirKej, 30000);
+/* Auto-ambil jadual setiap 1 minit: DQ / keputusan dari Pusat Kawalan masuk sendiri.
+   Tidak berjalan semasa tetingkap Jadual dibuka, semasa masa berjalan, atau bila tab tersorok. */
+setInterval(function(){
+  if(document.hidden || state.masaJalan || kejSibuk || kejGilir().length || !kejCfg().pin) { return; }
+  if(el("modalJadual").classList.contains("show") || el("modalKej").classList.contains("show")) { return; }
+  kejAmbil(true);
+}, 60000);
 
 /* ================== MULA ================== */
 function puncaFirebase(e){
