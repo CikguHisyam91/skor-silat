@@ -1339,14 +1339,12 @@ function sambung(){
 
     renderSemua(); renderLog(); simpanState();
     setConn(true);
-    var kerusiSedia = false;
-    fbListen("/kerusi", function(d){
-      kerusi = d || {}; renderKerusi();
-      if(!kerusiSedia){
-        kerusiSedia = true;
-        fbListen("/votes", onVotes, setConn);
-        fbListen("/bantahanUndi", onBantahanUndi, setConn);
-      }
+    // Satu sambungan sahaja (had pelayar 6 sambungan serentak bagi setiap laman)
+    fbListen("", function(d){
+      d = d || {};
+      kerusi = d.kerusi || {}; renderKerusi();
+      onVotes(d.votes);
+      onBantahanUndi(d.bantahanUndi);
     }, setConn);
   }).catch(function(e){
     setConn(false);

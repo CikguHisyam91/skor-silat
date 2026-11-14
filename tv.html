@@ -276,8 +276,9 @@ document.addEventListener("dblclick", function(){
 });
 
 fbListen("/state", render, setConn);
-/* sandaran: ambil skor terus setiap 2 saat supaya papan skor sentiasa terkini */
+/* sandaran: ambil skor terus setiap 2 saat, hanya bila sambungan langsung terputus */
 setInterval(function(){
+  if(connOn){ return; }
   fetch(fbUrl("/state")).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
     if(d && JSON.stringify(d) !== JSON.stringify(lama)){ render(d); }
     if(d){ setConn(true); }

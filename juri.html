@@ -369,8 +369,12 @@ function mula(){
   if(!JURI_ID){ return; }
   kunciSkrin();
   syncClock().then(ambilKerusi).then(function(){
-    fbListen("/kerusi/" + JURI_ID, onKerusi, setConn);
-    fbListen("/state", function(d){ state = d; render(); }, setConn);
+    // Satu sambungan sahaja (had pelayar 6 sambungan serentak bagi setiap laman)
+    fbListen("", function(d){
+      d = d || {};
+      onKerusi(d.kerusi ? d.kerusi[JURI_ID] : null);
+      state = d.state || null; render();
+    }, setConn);
   });
   hbTimer = setInterval(heartbeat, 10000);
   setInterval(syncClock, 60000);
